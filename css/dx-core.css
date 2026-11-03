@@ -499,3 +499,22 @@ html body .dx-root .dx-footer a.dx-link:hover { color: var(--dx-accent-text) !im
 .dx-rating { display: flex; align-items: center; gap: 14px; }
 .dx-rating-num { font-family: var(--dx-font-display); font-weight: 700; font-size: 48px; letter-spacing: -0.02em; line-height: 1; }
 .dx-stars { color: #f5a623; font-size: 20px; letter-spacing: 2px; }
+
+/* Цены на ремонт (/calculator) */
+.dx-p-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding-block: 8px 20px; }
+.dx-p-controls .dx-select { width: auto; min-width: 220px; }
+.dx-table tr.dx-p-group td { border-top: 1px solid var(--dx-line-strong); }
+.dx-table td .dx-btn { white-space: nowrap; }
+@media (max-width: 640px) {
+  .dx-p-table thead { display: none; }
+  .dx-p-table, .dx-p-table tbody, .dx-p-table tr, .dx-p-table td { display: block; min-width: 0; width: 100%; }
+  .dx-p-table { min-width: 0; }
+  .dx-p-table tr { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 14px 16px; border-bottom: 1px solid var(--dx-line); }
+  .dx-p-table td { padding: 0; border: 0; }
+  .dx-p-table td:nth-child(1) { grid-column: 1 / -1; }
+  .dx-p-table td:nth-child(2), .dx-p-table td:nth-child(3) { font-size: 13px; color: var(--dx-muted); grid-column: 1; }
+  .dx-p-table td:nth-child(4) { grid-column: 2; grid-row: 2; text-align: right; }
+  .dx-p-table td:nth-child(5) { grid-column: 2; grid-row: 3 / span 2; text-align: right; align-self: end; }
+  .dx-p-table tr.dx-p-group { border-top: 1px solid var(--dx-line-strong); }
+  .dx-p-table tr.dx-p-group td { border-top: 0; }
+}

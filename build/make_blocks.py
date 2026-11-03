@@ -327,7 +327,73 @@ def home_page():
 <script src="{CDN}/js/dx-home.min.js" defer></script>
 """
 
+def prices_page():
+    faq = "".join(f"<details><summary>{E(q)}</summary><p>{E(a)}</p></details>" for q, a in HOME_FAQ[:4])
+    ld = json.dumps({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+        {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in HOME_FAQ[:4]]}, ensure_ascii=False)
+    bc = json.dumps({"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Главная", "item": "https://apple-displex.ru/"},
+        {"@type": "ListItem", "position": 2, "name": "Цены на ремонт", "item": "https://apple-displex.ru/calculator"}]}, ensure_ascii=False)
+    return f"""<!-- Displex · ЦЕНЫ НА РЕМОНТ · адрес /calculator · {VER}
+     Настройки страницы в Creatium:
+       Title:       Цены на ремонт iPhone и Apple Watch в Екатеринбурге — Displex
+       Description: Прайс на ремонт iPhone 7–17 Pro Max и Apple Watch: замена дисплея, аккумулятора, заднего стекла, камеры, ремонт платы. Сроки и гарантия по каждой услуге. Бесплатная диагностика.
+-->
+<div class="dx-root dx-bleed" data-dx-prices>
+<section class="dx-container dx-cat-hero">
+  <nav class="dx-crumbs" aria-label="Хлебные крошки"><a href="/">Главная</a><span aria-hidden="true">/</span><span>Цены на ремонт</span></nav>
+  <h1 class="dx-h1">Цены на ремонт iPhone и Apple Watch</h1>
+  <p class="dx-lead">Выберите модель — покажем все услуги со сроками и гарантией. Диагностика бесплатная, цену называем до начала работ.</p>
+</section>
+<div class="dx-container">
+  <div class="dx-p-controls">
+    <div class="dx-chips" role="group" aria-label="Устройство" data-p-family>
+      <button class="dx-chip" type="button" data-fam="iphone" aria-pressed="true">iPhone</button>
+      <button class="dx-chip" type="button" data-fam="watch" aria-pressed="false">Apple Watch</button>
+    </div>
+    <label><span class="dx-sr">Модель</span><select class="dx-select" data-p-model><option>iPhone 13</option></select></label>
+  </div>
+  <h2 class="dx-h3" data-p-title style="margin-bottom:12px">Цены на ремонт iPhone 13</h2>
+  <div class="dx-table-wrap"><table class="dx-table dx-p-table">
+    <thead><tr><th scope="col">Услуга</th><th scope="col">Срок</th><th scope="col">Гарантия</th><th scope="col" class="dx-r">Цена</th><th scope="col"><span class="dx-sr">Запись</span></th></tr></thead>
+    <tbody data-p-body><tr><td colspan="5" class="dx-text-muted">Загружаем прайс…</td></tr></tbody>
+  </table></div>
+  <p class="dx-small dx-text-muted" style="margin-top:12px">Оригинальные запчасти — гарантия 1 год, копии — 6 месяцев. Точный срок и цена — после бесплатной диагностики.</p>
+</div>
+<section class="dx-section dx-section--tint" style="margin-top:48px"><div class="dx-container dx-seo">
+  <h2 class="dx-h2">Как мы считаем цену</h2>
+  <p>Цена в прайсе включает запчасть и работу мастера. Для дисплея есть несколько вариантов: переклейка стекла с сохранением родной матрицы, снятый оригинал, Service Pack или копия OLED/TFT. Для аккумулятора — оригинал, копия премиум или копия с привязкой, без уведомления о неоригинальной батарее.</p>
+  <p>Ремонт делаем в двух филиалах: Репина, 94 (ТРЦ «Радуга Парк») и Красный переулок, 12 (м. Динамо).</p>
+  <div class="dx-faq">{faq}</div>
+</div></section>
+
+<div class="dx-modal" id="dx-repair" role="dialog" aria-modal="true" aria-labelledby="dx-repair-h" aria-hidden="true" data-open="false">
+  <div class="dx-modal-box">
+    <button class="dx-modal-close" type="button" data-dx-close aria-label="Закрыть"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h2 class="dx-h3" id="dx-repair-h">Запись на ремонт</h2>
+    <div class="dx-modal-item"><div class="dx-small" data-r-what></div></div>
+    <form novalidate style="display:flex;flex-direction:column;gap:12px">
+      <div class="dx-seg" role="radiogroup" aria-label="Филиал">
+        <input type="radio" name="dx-r-branch" id="dx-r-b1" value="Репина, 94" checked><label for="dx-r-b1">Репина, 94</label>
+        <input type="radio" name="dx-r-branch" id="dx-r-b2" value="Красный пер., 12"><label for="dx-r-b2">Красный пер., 12</label>
+      </div>
+      <div class="dx-field"><label class="dx-label" for="dx-r-name">Имя</label><input class="dx-input" id="dx-r-name" name="dx-r-name" type="text" autocomplete="given-name"></div>
+      <div class="dx-field"><label class="dx-label" for="dx-r-phone">Телефон</label><input class="dx-input" id="dx-r-phone" name="dx-r-phone" type="tel" inputmode="tel" data-dx-phone placeholder="+7 (900) 000-00-00" autocomplete="tel" required></div>
+      <div class="dx-field"><label class="dx-label" for="dx-r-comment">Удобное время или комментарий</label><input class="dx-input" id="dx-r-comment" name="dx-r-comment" type="text" placeholder="Например, сегодня после 18:00"></div>
+      <label class="dx-check"><input type="checkbox" name="dx-r-agree" id="dx-r-agree" required><span>Согласен на обработку персональных данных по <a class="dx-link" href="/privacy">политике</a></span></label>
+      <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="submit">Записаться</button>
+    </form>
+    <p class="dx-form-status" data-r-status role="status" hidden></p>
+  </div>
+</div>
+</div>
+<script type="application/ld+json">{ld}</script>
+<script type="application/ld+json">{bc}</script>
+<script src="{CDN}/js/dx-prices.min.js" defer></script>
+"""
+
 open(f"{OUT}/index_home.html", "w").write(home_page())
+open(f"{OUT}/calculator_prices.html", "w").write(prices_page())
 open(f"{OUT}/00_header.html", "w").write(HEADER)
 open(f"{OUT}/99_footer.html", "w").write(FOOTER)
 rows = []
@@ -336,7 +402,7 @@ for k, p in PAGES.items():
     open(f"{OUT}/{fn}", "w").write(page(k, p))
     rows.append((p["slug"], fn, p["title"], p["desc"], p["h1"]))
 with open(f"{OUT}/README_страницы.md", "w") as f:
-    f.write(f"# Displex — блоки для Creatium ({VER})\n\nНа каждой странице 3 блока «HTML код» по порядку: `00_header.html` → блок страницы → `99_footer.html`.\n\n## / (главная)\n- Блок: `index_home.html`\n- Title: Ремонт iPhone и техника Apple в Екатеринбурге — Displex\n- Description: Ремонт iPhone, iPad, Mac и Apple Watch в Екатеринбурге: бесплатная диагностика, цена до начала работ, гарантия до 1 года. Новые и б/у iPhone, Trade-In. Репина 94 и Красный пер. 12.\n- H1: Ремонт и техника Apple. Цена — до начала работ.\n\n")
+    f.write(f"# Displex — блоки для Creatium ({VER})\n\nНа каждой странице 3 блока «HTML код» по порядку: `00_header.html` → блок страницы → `99_footer.html`.\n\n## / (главная)\n- Блок: `index_home.html`\n- Title: Ремонт iPhone и техника Apple в Екатеринбурге — Displex\n- Description: Ремонт iPhone, iPad, Mac и Apple Watch в Екатеринбурге: бесплатная диагностика, цена до начала работ, гарантия до 1 года. Новые и б/у iPhone, Trade-In. Репина 94 и Красный пер. 12.\n- H1: Ремонт и техника Apple. Цена — до начала работ.\n\n## /calculator (цены на ремонт)\n- Блок: `calculator_prices.html`\n- Title: Цены на ремонт iPhone и Apple Watch в Екатеринбурге — Displex\n- Description: Прайс на ремонт iPhone 7–17 Pro Max и Apple Watch: замена дисплея, аккумулятора, заднего стекла, камеры, ремонт платы. Сроки и гарантия по каждой услуге. Бесплатная диагностика.\n- H1: Цены на ремонт iPhone и Apple Watch\n\n")
     for slug, fn, t, d, h in rows:
         f.write(f"## {slug}\n- Блок: `{fn}`\n- Title: {t}\n- Description: {d}\n- H1: {h}\n\n")
 print("\n".join(sorted(os.listdir(OUT))))
