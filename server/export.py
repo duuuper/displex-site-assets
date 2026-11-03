@@ -80,9 +80,13 @@ def build_used() -> dict:
         cond = it.get("condition")
         cond_label, cond_desc = config.CONDITIONS[cond] if isinstance(cond, int) and 0 <= cond < len(config.CONDITIONS) else ("", "")
         br = it.get("branch")
+        cat = category(it.get("model", ""), it.get("kind", "phone"))
+        kit = [str(k) for k in (it.get("kit") or [])]
+        if cat != "iphone":   # в CRM у Mac/iPad/Watch пишут «Телефон» — на сайте это зарядка
+            kit = ["Зарядное устройство" if k.strip().lower() == "телефон" else k for k in kit]
         items.append({
             "id": pub_id(oid),
-            "cat": category(it.get("model", ""), it.get("kind", "phone")),
+            "cat": cat,
             "model": it.get("model", ""),
             "memory": it.get("memory", ""),
             "color": it.get("color", ""),
@@ -91,7 +95,7 @@ def build_used() -> dict:
             "condition": cond_label,
             "condition_desc": cond_desc,
             "note": it.get("note", ""),            # публичное «Примечание для объявления» (как в посте)
-            "kit": it.get("kit") or [],
+            "kit": kit,
             "warranty": it.get("warranty", ""),
             "price": int(it["price"]),
             "branch": br if isinstance(br, int) else None,   # None = оба филиала
