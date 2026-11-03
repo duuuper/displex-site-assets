@@ -1,0 +1,26 @@
+/* стили только для страницы-превью */
+body { background: var(--dx-bg); margin: 0; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--dx-band); }
+.pv-stack { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.pv-stack-lg { display: flex; flex-direction: column; gap: 32px; }
+.pv-head { display: flex; flex-direction: column; gap: 6px; }
+.pv-head--split { flex-direction: row; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
+.pv-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.pv-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; align-items: start; }
+.pv-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.pv-sw { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.pv-sw i { display: block; height: 64px; border-radius: 12px; border: 1px solid var(--dx-line); margin-bottom: 6px; }
+.pv-sw code { font-size: 12px; color: var(--dx-muted); }
+.pv-type { display: flex; flex-direction: column; border-top: 1px solid var(--dx-line); }
+.pv-type-row { display: grid; grid-template-columns: 110px 1fr; gap: 16px; align-items: baseline; padding-block: 14px; border-bottom: 1px solid var(--dx-line); min-width: 0; }
+.pv-type-row > :last-child { min-width: 0; }
+.pv-type-tag { font-size: 12px; color: var(--dx-muted); font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) { .pv-type-row { grid-template-columns: 1fr; gap: 4px; } }
+.pv-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.pv-split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+@media (max-width: 860px) { .pv-split { grid-template-columns: 1fr; } }
+.pv-calc { gap: 14px; padding: 26px; }
+.pv-result { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; padding: 16px 18px; border-radius: var(--dx-r); background: var(--dx-elevated); }
+.pv-result-meta { display: flex; flex-direction: column; align-items: flex-end; }
+.pv-thumb { width: 56px; height: 56px; border-radius: 12px; background: var(--dx-surface-2); flex: none; }
+.dx-card-media { color: var(--dx-ink); }
