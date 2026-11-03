@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Собирает HTML-блоки для Creatium: шапка, подвал, 7 страниц каталога.
 Запуск: python3 build/make_blocks.py <версия-тег>  → папка out/<дата>/"""
-import sys, os, json, html, datetime
+import sys, os, json, html, datetime, re
 VER = sys.argv[1] if len(sys.argv) > 1 else "main"
 OUT = sys.argv[2] if len(sys.argv) > 2 else "out"
 CDN = f"https://cdn.jsdelivr.net/gh/duuuper/displex-site-assets@{VER}"
@@ -351,6 +351,114 @@ def home_page():
 <script src="{CDN}/js/dx-home.min.js" defer></script>
 """
 
+import json as _json
+from series import SERIES as _SERIES
+_REP = None
+def _rep():
+    global _REP
+    if _REP is None:
+        fn = os.path.join(os.path.dirname(__file__), "..", "data", "site_repair_seed.csv")
+        import csv
+        _REP = list(csv.reader(open(fn, encoding="utf-8")))[1:]
+    return _REP
+
+def series_page(sr):
+    rep = _rep()
+    models = sr["models"] or sorted({r[0] for r in rep if "Watch" in r[0]}, key=lambda m: [int(x) if x.isdigit() else x for x in re.split(r"(\d+)", m)])
+    svc_order = []
+    for r in rep:
+        if r[0] in models and r[1] not in svc_order: svc_order.append(r[1])
+    def from_price(svc):
+        ps = [int(re.sub(r"\D", "", r[3])) for r in rep if r[0] in models and r[1] == svc and re.sub(r"\D", "", r[3]) and not r[2].startswith("Доплата")]
+        return f"от {min(ps):,} ₽".replace(",", " ") if ps else "после диагностики"
+    DUR = {"Замена дисплея": "40–60 мин", "Замена аккумулятора": "20–40 мин", "Замена корпуса": "1–2 ч", "Замена заднего стекла": "1–2 ч",
+           "Замена шлейфа зарядки": "40–60 мин", "Замена камеры": "40–60 мин", "Замена динамика": "40–60 мин", "Замена стекла камеры": "40–60 мин",
+           "Ремонт платы (пайка)": "от 1 дня", "Переклейка стекла": "4–5 ч"}
+    durs = {r[1]: DUR.get(r[1], r[4]) for r in rep if r[0] in models}
+    rows = "".join(f'<tr><td class="dx-svc">{E(sv)}</td><td>{E(durs.get(sv, ""))}</td><td class="dx-r"><span class="dx-price dx-price--md" data-from-svc="{E(sv)}">{E(from_price(sv))}</span></td></tr>' for sv in svc_order)
+    issues = "".join(f'<div class="dx-card dx-card--flat"><h3 class="dx-h3">{E(t)}</h3><p class="dx-text-muted">{E(x)}</p></div>' for t, x in sr["issues"])
+    nm = sr["name"]
+    faq_items = [
+        (f"Сколько стоит ремонт {nm}?", f"Цены на все услуги для {nm} — в таблице выше. Диагностика бесплатная, окончательную цену называем до начала работ."),
+        (f"Сколько времени занимает ремонт {nm}?", "Аккумулятор — 20–40 минут, дисплей — 40–60 минут, корпус и заднее стекло — 1–2 часа. Ремонт платы — от 1 дня."),
+        ("Какая гарантия?", "На оригинальные запчасти — 1 год, на копии — 6 месяцев."),
+        ("Можно ли сдать телефон в Trade-In вместо ремонта?", "Да. Если ремонт невыгоден, оценим устройство и зачтём его стоимость при покупке нового или б/у iPhone."),
+    ] if not sr.get("watch") else [
+        ("Сколько стоит переклейка стекла Apple Watch?", "Цена зависит от серии и размера корпуса — смотрите таблицу выше. Диагностика бесплатная."),
+        ("Сколько времени занимает ремонт?", "Переклейка стекла Apple Watch занимает 4–5 часов."),
+        ("Что если не работает сенсор?", "Тачскрин меняется отдельно — это доплата к переклейке, мастер скажет после диагностики."),
+    ]
+    faq = "".join(f"<details><summary>{E(q)}</summary><p>{E(a)}</p></details>" for q, a in faq_items)
+    ld = [{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in faq_items]},
+          {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+              {"@type": "ListItem", "position": 1, "name": "Главная", "item": "https://apple-displex.ru/"},
+              {"@type": "ListItem", "position": 2, "name": "Цены на ремонт", "item": "https://apple-displex.ru/calculator"},
+              {"@type": "ListItem", "position": 3, "name": f"Ремонт {nm}", "item": f"https://apple-displex.ru/remont/{sr['slug']}"}]}]
+    ld_html = "".join(f'<script type="application/ld+json">{_json.dumps(x, ensure_ascii=False)}</script>' for x in ld)
+    title = f"Ремонт {nm} в Екатеринбурге — цены, сроки, гарантия | Displex"
+    desc = (f"Ремонт {nm} в Екатеринбурге: замена экрана, аккумулятора, заднего стекла, камеры. Цены на все модели серии, бесплатная диагностика, гарантия до 1 года." if not sr.get("watch")
+            else "Ремонт Apple Watch в Екатеринбурге: переклейка стекла за 4–5 часов, замена сенсора. Цены по сериям и размерам, бесплатная диагностика.")
+    ti = "" if sr.get("watch") else f"""<div class="dx-offer dx-offer--dark" data-ti hidden style="margin-top:24px"><div><div class="dx-offer-title">Ремонт невыгоден? Сдайте {E(nm)} в Trade-In</div><div class="dx-small dx-text-muted">Зачтём стоимость при покупке <span data-ti-model>нового iPhone</span> <span data-ti-price></span></div></div><a class="dx-btn dx-btn--primary dx-btn--sm" href="/catalog/iphone">Выбрать iPhone</a></div>"""
+    models_attr = "|".join(models)
+    page = f"""<!-- Displex · РЕМОНТ {nm.upper()} · адрес /remont/{sr['slug']} · {VER}
+     Настройки страницы в Creatium:
+       Title:       {title}
+       Description: {desc}
+-->
+<div class="dx-root dx-bleed" data-dx-prices data-models="{E(models_attr)}"{" data-flat" if sr.get("watch") else ""}>
+<section class="dx-container dx-cat-hero">
+  <nav class="dx-crumbs" aria-label="Хлебные крошки"><a href="/">Главная</a><span aria-hidden="true">/</span><a href="/calculator">Цены на ремонт</a><span aria-hidden="true">/</span><span>{E(nm)}</span></nav>
+  <h1 class="dx-h1">Ремонт {E(nm)} в Екатеринбурге</h1>
+  <p class="dx-lead">Цены на все модели серии, сроки и гарантия. Диагностика бесплатная, цену называем до начала работ.</p>
+</section>
+<div class="dx-container">
+  <div class="dx-table-wrap" style="margin-bottom:28px"><table class="dx-table">
+    <thead><tr><th scope="col">Услуга</th><th scope="col">Срок</th><th scope="col" class="dx-r">Цена</th></tr></thead>
+    <tbody>{rows}</tbody></table></div>
+  <div class="dx-chips" role="group" aria-label="Модель" data-p-chips style="padding-block:8px 16px"></div>
+  <h2 class="dx-h3" data-p-title style="margin-bottom:12px">{"Цены по моделям Apple Watch" if sr.get("watch") else "Цены на ремонт " + E(next((m for m in models if re.fullmatch(r"iPhone \d+", m)), models[0]))}</h2>
+  <div class="dx-table-wrap"><table class="dx-table dx-p-table">
+    <thead><tr><th scope="col">Услуга</th><th scope="col">Срок</th><th scope="col">Гарантия</th><th scope="col" class="dx-r">Цена</th><th scope="col"><span class="dx-sr">Запись</span></th></tr></thead>
+    <tbody data-p-body><tr><td colspan="5" class="dx-text-muted">Загружаем прайс…</td></tr></tbody></table></div>
+  {ti}
+</div>
+<section class="dx-section"><div class="dx-container">
+  <h2 class="dx-h2" style="margin-bottom:20px">Частые неисправности {E(nm)}</h2>
+  <div class="dx-grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">{issues}</div>
+</div></section>
+<section class="dx-section dx-section--tint"><div class="dx-container dx-seo">
+  <h2 class="dx-h2">Вопросы о ремонте {E(nm)}</h2>
+  <div class="dx-faq">{faq}</div>
+  <p>Ремонт в двух филиалах: Репина, 94 (ТРЦ «Радуга Парк») и Красный переулок, 12 (м. Динамо). <a class="dx-link" href="/calculator">Цены на другие модели</a></p>
+</div></section>
+{REPAIR_MODAL}
+</div>
+{ld_html}
+<script src="{CDN}/js/dx-prices.min.js" defer></script>
+"""
+    return page, title, desc
+
+REPAIR_MODAL = '''<div class="dx-modal" id="dx-repair" role="dialog" aria-modal="true" aria-labelledby="dx-repair-h" aria-hidden="true" data-open="false">
+  <div class="dx-modal-box">
+    <button class="dx-modal-close" type="button" data-dx-close aria-label="Закрыть"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h2 class="dx-h3" id="dx-repair-h">Запись на ремонт</h2>
+    <div class="dx-modal-item"><div class="dx-small" data-r-what></div></div>
+    <form novalidate style="display:flex;flex-direction:column;gap:12px">
+      <div class="dx-seg" role="radiogroup" aria-label="Филиал">
+        <input type="radio" name="dx-r-branch" id="dx-r-b1" value="Репина, 94" checked><label for="dx-r-b1">Репина, 94</label>
+        <input type="radio" name="dx-r-branch" id="dx-r-b2" value="Красный пер., 12"><label for="dx-r-b2">Красный пер., 12</label>
+      </div>
+      <div class="dx-field"><label class="dx-label" for="dx-r-name">Имя</label><input class="dx-input" id="dx-r-name" name="dx-r-name" type="text" autocomplete="given-name"></div>
+      <div class="dx-field"><label class="dx-label" for="dx-r-phone">Телефон</label><input class="dx-input" id="dx-r-phone" name="dx-r-phone" type="tel" inputmode="tel" data-dx-phone placeholder="+7 (900) 000-00-00" autocomplete="tel" required></div>
+      <div class="dx-field"><label class="dx-label" for="dx-r-comment">Удобное время или комментарий</label><input class="dx-input" id="dx-r-comment" name="dx-r-comment" type="text" placeholder="Например, сегодня после 18:00"></div>
+      <label class="dx-check"><input type="checkbox" name="dx-r-agree" id="dx-r-agree" required><span>Даю <a class="dx-link" href="/privacy#consent">согласие на обработку персональных данных</a> и принимаю <a class="dx-link" href="/privacy">политику конфиденциальности</a></span></label>
+      <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="submit">Записаться</button>
+    </form>
+    <p class="dx-form-status" data-r-status role="status" hidden></p>
+  </div>
+</div>
+'''
+
 def prices_page():
     faq = "".join(f"<details><summary>{E(q)}</summary><p>{E(a)}</p></details>" for q, a in HOME_FAQ[:4])
     ld = json.dumps({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
@@ -391,26 +499,7 @@ def prices_page():
   <div class="dx-faq">{faq}</div>
 </div></section>
 
-<div class="dx-modal" id="dx-repair" role="dialog" aria-modal="true" aria-labelledby="dx-repair-h" aria-hidden="true" data-open="false">
-  <div class="dx-modal-box">
-    <button class="dx-modal-close" type="button" data-dx-close aria-label="Закрыть"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-    <h2 class="dx-h3" id="dx-repair-h">Запись на ремонт</h2>
-    <div class="dx-modal-item"><div class="dx-small" data-r-what></div></div>
-    <form novalidate style="display:flex;flex-direction:column;gap:12px">
-      <div class="dx-seg" role="radiogroup" aria-label="Филиал">
-        <input type="radio" name="dx-r-branch" id="dx-r-b1" value="Репина, 94" checked><label for="dx-r-b1">Репина, 94</label>
-        <input type="radio" name="dx-r-branch" id="dx-r-b2" value="Красный пер., 12"><label for="dx-r-b2">Красный пер., 12</label>
-      </div>
-      <div class="dx-field"><label class="dx-label" for="dx-r-name">Имя</label><input class="dx-input" id="dx-r-name" name="dx-r-name" type="text" autocomplete="given-name"></div>
-      <div class="dx-field"><label class="dx-label" for="dx-r-phone">Телефон</label><input class="dx-input" id="dx-r-phone" name="dx-r-phone" type="tel" inputmode="tel" data-dx-phone placeholder="+7 (900) 000-00-00" autocomplete="tel" required></div>
-      <div class="dx-field"><label class="dx-label" for="dx-r-comment">Удобное время или комментарий</label><input class="dx-input" id="dx-r-comment" name="dx-r-comment" type="text" placeholder="Например, сегодня после 18:00"></div>
-      <label class="dx-check"><input type="checkbox" name="dx-r-agree" id="dx-r-agree" required><span>Даю <a class="dx-link" href="/privacy#consent">согласие на обработку персональных данных</a> и принимаю <a class="dx-link" href="/privacy">политику конфиденциальности</a></span></label>
-      <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="submit">Записаться</button>
-    </form>
-    <p class="dx-form-status" data-r-status role="status" hidden></p>
-  </div>
-</div>
-</div>
+{REPAIR_MODAL}</div>
 <script type="application/ld+json">{ld}</script>
 <script type="application/ld+json">{bc}</script>
 <script src="{CDN}/js/dx-prices.min.js" defer></script>
@@ -479,12 +568,18 @@ def sitemap():
     today = datetime.date.today().isoformat()
     urls = [("/", "daily", "1.0"), ("/catalog", "daily", "0.9")] + \
            [(PAGES[k]["slug"], "daily", "0.8") for k in ["iphone", "mac", "ipad", "watch", "airpods", "used"]] + \
-           [("/calculator", "weekly", "0.9"), ("/privacy", "yearly", "0.2")]
+           [("/calculator", "weekly", "0.9")] + [("/remont/" + x["slug"], "weekly", "0.8") for x in _SERIES] + [("/privacy", "yearly", "0.2")]
     body = "".join(f"  <url>\n    <loc>https://apple-displex.ru{u}</loc>\n    <lastmod>{today}</lastmod>\n    <changefreq>{c}</changefreq>\n    <priority>{pr}</priority>\n  </url>\n" for u, c, pr in urls)
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{body}</urlset>\n'
 
 open(f"{OUT}/index_home.html", "w").write(home_page())
 open(f"{OUT}/privacy.html", "w").write(privacy_page())
+os.makedirs(f"{OUT}/remont", exist_ok=True)
+_series_rows = []
+for _sr in _SERIES:
+    _pg, _t, _d = series_page(_sr)
+    open(f"{OUT}/remont/remont_{_sr['slug']}.html", "w").write(_pg)
+    _series_rows.append((_sr["slug"], _t, _d, _sr["name"]))
 open(f"{OUT}/404.html", "w").write(page404())
 open(f"{OUT}/robots.txt", "w").write(ROBOTS)
 open(f"{OUT}/sitemap.xml", "w").write(sitemap())
@@ -501,5 +596,9 @@ with open(f"{OUT}/README_страницы.md", "w") as f:
     for slug, fn, t, d, h in rows:
         f.write(f"## {slug}\n- Блок: `{fn}`\n- Title: {t}\n- Description: {d}\n- H1: {h}\n\n")
 print("\n".join(sorted(os.listdir(OUT))))
+with open(f"{OUT}/remont/README_remont.md", "w") as f:
+    f.write("# Посадочные страницы ремонта (" + VER + ")\n\nНа каждой странице 3 блока: 00_header.html → remont_<серия>.html → 99_footer.html\n\n")
+    for slug, t, d, nm in _series_rows:
+        f.write(f"## /remont/{slug}\n- Блок: `remont/remont_{slug}.html`\n- Title: {t}\n- Description: {d}\n- H1: Ремонт {nm} в Екатеринбурге\n\n")
 for fn in sorted(os.listdir(OUT)):
-    print(fn, os.path.getsize(f"{OUT}/{fn}"))
+    print(fn)
