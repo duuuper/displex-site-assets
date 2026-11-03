@@ -122,6 +122,7 @@ def build_new() -> dict:
             "memory": s.get("memory", ""),
             "color": s.get("color_en", ""),
             "price": int(s["price"]),
+            "stock": "in_stock",
             "photo": f"{PUBLIC_URL}/media/new/{photo}.jpg" if photo else "",
         }
         for k in ("sim", "ram", "ssd", "size", "strap"):
@@ -136,6 +137,7 @@ def build_new() -> dict:
 
 # ── Ремонт ───────────────────────────────────────────────────────────────────
 REPAIR_COLS = ["model", "service", "variant", "price", "duration", "warranty"]
+REPAIR_HEAD = ["модель", "услуга", "вариант", "цена", "срок", "гарантия"]
 
 
 def build_repair() -> dict | None:
@@ -146,6 +148,10 @@ def build_repair() -> dict | None:
     rows = list(csv.reader(io.StringIO(text)))
     if len(rows) < 2:
         return None
+    # gviz при отсутствии листа молча отдаёт ПЕРВЫЙ лист таблицы — проверяем заголовки
+    head = [c.strip().lower() for c in rows[0][:6]]
+    if head != REPAIR_HEAD:
+        raise ValueError(f"лист «{REPAIR_SHEET}» не найден или заголовки не совпадают: {rows[0][:6]}")
     items = []
     for r in rows[1:]:
         r = (r + [""] * 6)[:6]
