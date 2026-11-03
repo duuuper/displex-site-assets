@@ -105,5 +105,35 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { initCookie(); applyTheme(store(KEY_THEME)); });
   else initCookie();
 
-  window.DX = { applyTheme: applyTheme, openModal: openModal, formatPhone: formatPhone };
+  /* ---------- Заявки → Apps Script (таблица «Заявки» + Telegram-группа) ---------- */
+  var LEAD_URL = "https://script.google.com/macros/s/AKfycby4lhzUgEND7oM160rA49jHts7U9pVs9oHvudcJLNcjh9sHndatdxkKSifXriEBFRW3/exec";
+  var SITE_KEY = "ff31fe3064da4188a7ba3e77eb193098";   // публичный ключ сайта, не секрет
+  var UTM = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "yclid", "gclid"];
+  (function rememberUtm() {                            // первая метка визита живёт до закрытия вкладки
+    try {
+      var q = new URLSearchParams(location.search), got = {};
+      UTM.forEach(function (k) { if (q.get(k)) got[k] = q.get(k); });
+      if (Object.keys(got).length && !sessionStorage.getItem("dx-utm")) sessionStorage.setItem("dx-utm", JSON.stringify(got));
+    } catch (e) {}
+  })();
+  function phoneDigits(p) { return String(p || "").replace(/\D/g, ""); }
+  function sendLead(data) {
+    var body = { lead_id: "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                 page: location.pathname, channel: "site" };
+    Object.keys(data || {}).forEach(function (k) { if (data[k] != null && data[k] !== "") body[k] = data[k]; });
+    try { var u = JSON.parse(sessionStorage.getItem("dx-utm") || "{}"); Object.keys(u).forEach(function (k) { body[k] = u[k]; }); } catch (e) {}
+    var url = LEAD_URL + "?key=" + encodeURIComponent(SITE_KEY);
+    var opts = { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) };
+    return fetch(url, opts).then(function (r) { return r.json(); }).then(
+      function (j) { return j && j.ok === false ? { ok: false, error: j.error || "rejected" } : { ok: true, id: body.lead_id }; },
+      function () {                                     // ответ не прочитать (сеть/CORS) — отправляем вслепую, дубль отсечёт lead_id
+        opts.mode = "no-cors";
+        return fetch(url, opts).then(function () { return { ok: true, id: body.lead_id, blind: true }; },
+                                     function () { return { ok: false, error: "network" }; });
+      });
+  }
+  function validPhone(p) { var d = phoneDigits(p); return d.length === 11 && d[0] === "7"; }
+
+  window.DX = { applyTheme: applyTheme, openModal: openModal, closeModal: closeModal, formatPhone: formatPhone,
+                sendLead: sendLead, validPhone: validPhone, store: store };
 })();
