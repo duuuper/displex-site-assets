@@ -92,8 +92,106 @@
 .dx-root h1, .dx-root h2, .dx-root h3, .dx-root h4, .dx-root p, .dx-root ul, .dx-root figure { margin: 0; }
 .dx-root ul { padding: 0; list-style: none; }
 .dx-root img, .dx-root svg { max-width: 100%; }
-html body .dx-root a, html body #cr-page .dx-root a, html body .cr-page .dx-root a { color: inherit; text-decoration: none; }
-html body .dx-root a.dx-link, html body #cr-page .dx-root a.dx-link { color: var(--dx-accent-text); }
+/* Creatium красит ссылки своим цветом с !important — перебиваем внутри наших блоков.
+   Каждое правило в трёх вариантах: без ID и с #cr-page / .cr-page, чтобы частные правила всегда были сильнее общего. */
+html body .dx-root a,
+html body .dx-root a:hover,
+html body .dx-root a:visited,
+html body .dx-root a:focus,
+html body #cr-page .dx-root a,
+html body #cr-page .dx-root a:hover,
+html body #cr-page .dx-root a:visited,
+html body #cr-page .dx-root a:focus,
+html body .cr-page .dx-root a,
+html body .cr-page .dx-root a:hover,
+html body .cr-page .dx-root a:visited,
+html body .cr-page .dx-root a:focus { color: inherit !important; text-decoration: none !important; border-bottom: 0 !important; }
+html body .dx-root a.dx-link,
+html body .dx-root a.dx-link:hover,
+html body .dx-root a.dx-link:visited,
+html body #cr-page .dx-root a.dx-link,
+html body #cr-page .dx-root a.dx-link:hover,
+html body #cr-page .dx-root a.dx-link:visited,
+html body .cr-page .dx-root a.dx-link,
+html body .cr-page .dx-root a.dx-link:hover,
+html body .cr-page .dx-root a.dx-link:visited { color: var(--dx-accent-text) !important; }
+html body .dx-root .dx-panel-dark a.dx-link,
+html body #cr-page .dx-root .dx-panel-dark a.dx-link,
+html body .cr-page .dx-root .dx-panel-dark a.dx-link { color: #8cc4ff !important; }
+html body .dx-root a.dx-btn--primary,
+html body .dx-root a.dx-btn--primary:hover,
+html body .dx-root a.dx-btn--primary:visited,
+html body #cr-page .dx-root a.dx-btn--primary,
+html body #cr-page .dx-root a.dx-btn--primary:hover,
+html body #cr-page .dx-root a.dx-btn--primary:visited,
+html body .cr-page .dx-root a.dx-btn--primary,
+html body .cr-page .dx-root a.dx-btn--primary:hover,
+html body .cr-page .dx-root a.dx-btn--primary:visited { color: var(--dx-accent-ink) !important; }
+html body .dx-root a.dx-btn--secondary,
+html body .dx-root a.dx-btn--ghost,
+html body .dx-root a.dx-btn--secondary:hover,
+html body .dx-root a.dx-btn--ghost:hover,
+html body #cr-page .dx-root a.dx-btn--secondary,
+html body #cr-page .dx-root a.dx-btn--ghost,
+html body #cr-page .dx-root a.dx-btn--secondary:hover,
+html body #cr-page .dx-root a.dx-btn--ghost:hover,
+html body .cr-page .dx-root a.dx-btn--secondary,
+html body .cr-page .dx-root a.dx-btn--ghost,
+html body .cr-page .dx-root a.dx-btn--secondary:hover,
+html body .cr-page .dx-root a.dx-btn--ghost:hover { color: var(--dx-ink) !important; }
+html body .dx-root a.dx-btn--tg,
+html body .dx-root a.dx-btn--tg:hover,
+html body #cr-page .dx-root a.dx-btn--tg,
+html body #cr-page .dx-root a.dx-btn--tg:hover,
+html body .cr-page .dx-root a.dx-btn--tg,
+html body .cr-page .dx-root a.dx-btn--tg:hover { color: #ffffff !important; }
+html body .dx-root a.dx-chip,
+html body .dx-root a.dx-chip:hover,
+html body #cr-page .dx-root a.dx-chip,
+html body #cr-page .dx-root a.dx-chip:hover,
+html body .cr-page .dx-root a.dx-chip,
+html body .cr-page .dx-root a.dx-chip:hover { color: var(--dx-ink) !important; }
+html body .dx-root a.dx-chip[aria-pressed="true"],
+html body .dx-root a.dx-chip[aria-pressed="true"]:hover,
+html body #cr-page .dx-root a.dx-chip[aria-pressed="true"],
+html body #cr-page .dx-root a.dx-chip[aria-pressed="true"]:hover,
+html body .cr-page .dx-root a.dx-chip[aria-pressed="true"],
+html body .cr-page .dx-root a.dx-chip[aria-pressed="true"]:hover { color: var(--dx-bg) !important; }
+html body .dx-root .dx-topbar a,
+html body .dx-root .dx-topbar a:hover,
+html body #cr-page .dx-root .dx-topbar a,
+html body #cr-page .dx-root .dx-topbar a:hover,
+html body .cr-page .dx-root .dx-topbar a,
+html body .cr-page .dx-root .dx-topbar a:hover { color: var(--dx-band-ink) !important; }
+html body .dx-root .dx-crumbs a,
+html body .dx-root .dx-crumbs a:visited,
+html body #cr-page .dx-root .dx-crumbs a,
+html body #cr-page .dx-root .dx-crumbs a:visited,
+html body .cr-page .dx-root .dx-crumbs a,
+html body .cr-page .dx-root .dx-crumbs a:visited { color: var(--dx-muted) !important; }
+html body .dx-root .dx-crumbs a:hover,
+html body .dx-root .dx-footer a:hover,
+html body .dx-root .dx-nav a:hover,
+html body #cr-page .dx-root .dx-crumbs a:hover,
+html body #cr-page .dx-root .dx-footer a:hover,
+html body #cr-page .dx-root .dx-nav a:hover,
+html body .cr-page .dx-root .dx-crumbs a:hover,
+html body .cr-page .dx-root .dx-footer a:hover,
+html body .cr-page .dx-root .dx-nav a:hover { color: var(--dx-ink) !important; }
+html body .dx-root .dx-footer a.dx-link:hover,
+html body #cr-page .dx-root .dx-footer a.dx-link:hover,
+html body .cr-page .dx-root .dx-footer a.dx-link:hover { color: var(--dx-accent-text) !important; }
+.dx-root a.dx-link:hover, html body .dx-root a.dx-link:visited { color: var(--dx-accent-text) !important; }
+html body .dx-root .dx-panel-dark a.dx-link { color: #8cc4ff !important; }
+html body .dx-root a.dx-btn--primary, html body .dx-root a.dx-btn--primary:hover, html body .dx-root a.dx-btn--primary:visited { color: var(--dx-accent-ink) !important; }
+html body .dx-root a.dx-btn--secondary, html body .dx-root a.dx-btn--ghost, html body .dx-root a.dx-btn--secondary:hover, html body .dx-root a.dx-btn--ghost:hover { color: var(--dx-ink) !important; }
+html body .dx-root a.dx-btn--tg, html body .dx-root a.dx-btn--tg:hover { color: #ffffff !important; }
+html body .dx-root a.dx-chip, html body .dx-root a.dx-chip:hover { color: var(--dx-ink) !important; }
+html body .dx-root a.dx-chip[aria-pressed="true"], html body .dx-root a.dx-chip[aria-pressed="true"]:hover { color: var(--dx-bg) !important; }
+html body .dx-root .dx-topbar a, html body .dx-root .dx-topbar a:hover { color: var(--dx-band-ink) !important; }
+html body .dx-root .dx-crumbs a, html body .dx-root .dx-crumbs a:visited { color: var(--dx-muted) !important; }
+html body .dx-root .dx-crumbs a:hover, html body .dx-root .dx-footer a:hover, html body .dx-root .dx-nav a:hover { color: var(--dx-ink) !important; }
+html body .dx-root .dx-footer a.dx-link:hover { color: var(--dx-accent-text) !important; }
 .dx-root a.dx-link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .dx-root :focus-visible { outline: 2px solid var(--dx-accent); outline-offset: 2px; border-radius: 6px; }
 .dx-root [hidden], .dx-root[hidden] { display: none !important; }
@@ -131,13 +229,13 @@ html body .dx-root a.dx-link, html body #cr-page .dx-root a.dx-link { color: var
 }
 .dx-btn:active { transform: translateY(1px); }
 .dx-btn[disabled], .dx-btn[aria-disabled="true"] { opacity: .45; pointer-events: none; }
-.dx-btn--primary, html body .dx-root a.dx-btn--primary { background: var(--dx-accent); color: var(--dx-accent-ink); }
+.dx-btn--primary { background: var(--dx-accent); color: var(--dx-accent-ink); }
 .dx-btn--primary:hover { background: var(--dx-accent-hover); }
-.dx-btn--secondary, html body .dx-root a.dx-btn--secondary { background: transparent; color: var(--dx-ink); border-color: var(--dx-line-strong); }
+.dx-btn--secondary { background: transparent; color: var(--dx-ink); border-color: var(--dx-line-strong); }
 .dx-btn--secondary:hover { border-color: var(--dx-ink); }
-.dx-btn--ghost, html body .dx-root a.dx-btn--ghost { background: var(--dx-surface); color: var(--dx-ink); }
+.dx-btn--ghost { background: var(--dx-surface); color: var(--dx-ink); }
 .dx-btn--ghost:hover { background: var(--dx-surface-2); }
-.dx-btn--tg, html body .dx-root a.dx-btn--tg { background: var(--dx-tg); color: #ffffff; }
+.dx-btn--tg { background: var(--dx-tg); color: #ffffff; }
 .dx-btn--sm { min-height: 44px; padding: 0 16px; font-size: 14px; }
 .dx-btn--lg { min-height: 56px; padding: 0 26px; font-size: 16px; }
 .dx-btn--block { width: 100%; }
@@ -262,7 +360,7 @@ html body .dx-root a.dx-link, html body #cr-page .dx-root a.dx-link { color: var
 .dx-branch { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
 .dx-branch-name { font-weight: 600; }
 .dx-branch-hint { color: var(--dx-band-muted); }
-html body .dx-root .dx-branch a { color: var(--dx-band-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.dx-branch a { font-weight: 600; font-variant-numeric: tabular-nums; }
 .dx-topbar-note { color: var(--dx-band-muted); }
 .dx-navbar { border-bottom: 1px solid var(--dx-line); }
 .dx-navbar-in { display: flex; align-items: center; gap: 20px; min-height: 66px; }
