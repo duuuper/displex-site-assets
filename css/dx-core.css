@@ -421,6 +421,7 @@ html body .dx-root .dx-footer a.dx-link:hover { color: var(--dx-accent-text) !im
 .dx-modal { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px; background: var(--dx-overlay); }
 .dx-modal[data-open="true"] { display: flex; }
 .dx-modal-box { width: 100%; max-width: 460px; max-height: calc(100% - 32px); overflow: auto; border-radius: var(--dx-r-xl); background: var(--dx-elevated); padding: 28px; position: relative; display: flex; flex-direction: column; gap: 14px; }
+.dx-modal-box > h2, .dx-modal-box > .dx-h3 { padding-right: 48px; }
 .dx-modal-close { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--dx-surface); color: var(--dx-ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .dx-modal-item { display: flex; gap: 14px; align-items: center; padding: 12px; border-radius: var(--dx-r); background: var(--dx-surface); }
 @media (max-width: 560px) { .dx-modal { align-items: flex-end; padding: 0; } .dx-modal-box { max-width: none; border-radius: var(--dx-r-xl) var(--dx-r-xl) 0 0; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); } }
