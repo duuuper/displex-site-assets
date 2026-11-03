@@ -163,8 +163,9 @@
     var media = v.photo
       ? '<img src="' + esc(v.photo) + '" alt="' + esc(g.title + ", " + v.color) + '" loading="lazy" decoding="async" width="400" height="300" data-dx-fallback="' + g.cat + '">'
       : silhouette(g.cat);
+    var ALWAYS = { color: 1, memory: 1, size: 1 };   // эти строки есть в каждой карточке, даже при одном варианте
     var dims = g.dims.map(function (d) {
-      if (d.vals.length < 2) return "";
+      if (d.vals.length < 2 && !ALWAYS[d.key]) return "";
       var html = d.vals.map(function (val) {
         var on = v[d.key] === val;
         var choice = {}; g.dims.forEach(function (x) { choice[x.key] = v[x.key]; }); choice[d.key] = val;
@@ -179,15 +180,15 @@
       return '<div class="dx-dim"><span class="dx-dim-label">' + DIM_LABEL[d.key] + (d.key === "color" ? ": " + esc(v.color) : "") + '</span><div class="' +
         (d.key === "color" ? "dx-swatches" : "dx-opts") + '" role="group" aria-label="' + DIM_LABEL[d.key] + '">' + html + "</div></div>";
     }).join("");
-    var single = g.dims.filter(function (d) { return d.vals.length === 1; }).map(function (d) { return d.vals[0]; }).join(" · ");
+    var single = g.dims.filter(function (d) { return d.vals.length === 1 && !ALWAYS[d.key]; }).map(function (d) { return d.vals[0]; }).join(" · ");
     return '<article class="dx-card dx-pcard" data-key="' + esc(g.key) + '">' +
       '<div class="dx-card-media">' + media + "</div>" +
       '<div class="dx-chips" style="gap:6px"><span class="dx-badge dx-badge--stock">В наличии</span><span class="dx-badge dx-badge--new">Новый</span></div>' +
       '<h3 class="dx-card-title">' + esc(g.title) + "</h3>" +
       (single ? '<p class="dx-card-meta">' + esc(single) + "</p>" : "") + dims +
-      '<div class="dx-card-row"><span class="dx-price dx-price--lg">' + rub(v.price) + "</span>" +
+      '<div class="dx-card-foot"><div class="dx-card-row"><span class="dx-price dx-price--lg">' + rub(v.price) + "</span>" +
       (v.price > g.min ? '<span class="dx-tiny dx-text-muted">от ' + rub(g.min) + "</span>" : "") + "</div>" +
-      '<div class="dx-card-actions"><button class="dx-btn dx-btn--primary dx-btn--sm" type="button" data-book="new" data-g="' + esc(g.key) + '">Забронировать</button></div>' +
+      '<div class="dx-card-actions"><button class="dx-btn dx-btn--primary dx-btn--sm" type="button" data-book="new" data-g="' + esc(g.key) + '">Забронировать</button></div></div>' +
       "</article>";
   }
 
@@ -217,8 +218,8 @@
       "<dt>Комплект</dt><dd>" + esc((u.kit && u.kit.length ? u.kit.join(", ") : "только устройство")) + "</dd>" +
       (u.warranty ? "<dt>Гарантия</dt><dd>" + esc(u.warranty) + "</dd>" : "") +
       "</dl>" + (u.note ? '<p class="dx-small dx-text-muted">' + esc(u.note) + "</p>" : "") +
-      '<div class="dx-card-row"><span class="dx-price dx-price--lg">' + rub(u.price) + "</span></div>" +
-      '<div class="dx-card-actions"><button class="dx-btn dx-btn--primary dx-btn--sm" type="button" data-book="used" data-id="' + esc(u.id) + '">Забронировать</button></div>' +
+      '<div class="dx-card-foot"><div class="dx-card-row"><span class="dx-price dx-price--lg">' + rub(u.price) + "</span></div>" +
+      '<div class="dx-card-actions"><button class="dx-btn dx-btn--primary dx-btn--sm" type="button" data-book="used" data-id="' + esc(u.id) + '">Забронировать</button></div></div>' +
       "</article>";
   }
 
