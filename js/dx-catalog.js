@@ -349,7 +349,7 @@
     }
     booking = { title: title, meta: meta, price: price, kind: kind, cat: cat };
     modal.querySelector("[data-book-title]").textContent = title;
-    modal.querySelector("[data-book-meta]").textContent = meta + " · " + rub(price).replace(" ₽", " ₽");
+    modal.querySelector("[data-book-meta]").textContent = meta + " · " + rub(price);
     var st = modal.querySelector("[data-book-status]"); st.hidden = true;
     modal.querySelector("form").hidden = false;
     window.DX && window.DX.openModal("dx-book");
