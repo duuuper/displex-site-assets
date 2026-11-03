@@ -1,0 +1,9 @@
+[Unit]
+Description=Displex: выгрузка JSON для сайта (new/used/repair)
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/displex-site
+ExecStart=/opt/displex-usedbot/venv/bin/python /opt/displex-site/export.py
+Nice=10

@@ -1,0 +1,10 @@
+[Unit]
+Description=Displex: выгрузка JSON для сайта каждые 2 минуты
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=2min
+AccuracySec=15s
+
+[Install]
+WantedBy=timers.target
