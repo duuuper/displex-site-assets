@@ -135,8 +135,50 @@ def build_new() -> dict:
         if s["kind"] == "ipad":
             row["net"] = "Wi-Fi + Cellular" if s.get("lte") else "Wi-Fi"
         items.append(row)
+    items += build_airpods(newtech.PRICE_DB, last_day)
     items.sort(key=lambda x: (x["cat"], x["model"], x["price"]))
     return {"updated": int(time.time()), "day": last_day, "items": items}
+
+
+AIRPODS_COLORS = ["Midnight", "Starlight", "Blue", "Purple", "Orange", "Black", "White", "Pink", "Green", "Silver",
+                  "Space Gray", "Sky Blue"]
+PART_NO = re.compile(r"\b[A-Z]{2,4}\d[A-Z0-9]{0,2}\b")
+PRICE_TAIL = re.compile(r"\s*[—–-]\s*\d[\d\s.]*\s*(?:₽|р\.?|руб\.?)?\s*$", re.I)
+
+
+def parse_airpods(raw: str) -> dict | None:
+    """'Airpods Max Orange 2024 USB-C MWW73 — 36500' → {model, color}. Закупочная часть строки отбрасывается."""
+    b = PRICE_TAIL.sub("", raw)
+    b = PART_NO.sub(" ", b)
+    b = re.sub(r"\bair\s*pods\b", "AirPods", b, flags=re.I)
+    b = re.sub(r"\s{2,}", " ", b).strip()
+    if not b.startswith("AirPods"):
+        return None
+    color = next((c for c in AIRPODS_COLORS if re.search(rf"\b{c}\b", b, re.I)), "")
+    if color:
+        b = re.sub(rf"\s*\b{color}\b", "", b, flags=re.I).strip()
+    b = re.sub(r"\b20\d\d\b", "", b)                       # год — в модель не нужен
+    b = re.sub(r"\bCharging Case\b", "", b, flags=re.I)
+    model = re.sub(r"\s{2,}", " ", b).strip()
+    return {"model": model, "color": color}
+
+
+def build_airpods(db: Path, day: str) -> list[dict]:
+    import sqlite3
+    con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    rows = con.execute("SELECT raw, price FROM prices WHERE day = ? AND cat = 'airpods' AND price IS NOT NULL",
+                       (day,)).fetchall()
+    con.close()
+    best: dict[str, dict] = {}
+    for raw, price in rows:
+        a = parse_airpods(raw)
+        if not a:
+            continue
+        k = f"{a['model']}|{a['color']}"
+        if k not in best or price < best[k]["price"]:     # дубли от разных поставщиков — меньшая розница
+            best[k] = {"id": pub_id("airpods|" + k), "cat": "airpods", "model": a["model"], "memory": "",
+                       "color": a["color"], "price": int(price), "stock": "in_stock", "photo": ""}
+    return list(best.values())
 
 
 # ── Ремонт ───────────────────────────────────────────────────────────────────
