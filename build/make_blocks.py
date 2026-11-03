@@ -35,13 +35,13 @@ HEADER = f"""<!-- Displex · ШАПКА (блок «HTML код», первый 
         <button type="button" data-dx-theme-set="light" aria-pressed="false" aria-label="Светлая тема"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg></button>
         <button type="button" data-dx-theme-set="dark" aria-pressed="false" aria-label="Тёмная тема"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
       </div>
-      <a class="dx-btn dx-btn--primary dx-btn--sm" href="/calculator#booking">Записаться</a>
+      <a class="dx-btn dx-btn--primary dx-btn--sm" href="/#booking" data-dx-open="dx-lead">Записаться</a>
       <button class="dx-burger" type="button" data-dx-menu-toggle aria-controls="dx-menu" aria-expanded="false" aria-label="Меню"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     </div>
   </div></div>
   <div class="dx-menu" id="dx-menu" data-open="false"><div class="dx-container dx-menu-in">
     <a href="/calculator">Ремонт</a><a href="/catalog">Каталог</a><a href="/catalog/used">Б/у</a><a href="/#tradein">Trade-In</a><a href="/#branches">Контакты</a>
-    <a class="dx-btn dx-btn--primary dx-btn--block" href="/calculator#booking">Записаться</a>
+    <a class="dx-btn dx-btn--primary dx-btn--block" href="/#booking" data-dx-open="dx-lead">Записаться</a>
   </div></div>
 </header>
 </div>
@@ -61,6 +61,29 @@ FOOTER = f"""<!-- Displex · ПОДВАЛ (блок «HTML код», после�
     <span><a class="dx-link" href="/privacy">Политика конфиденциальности</a> · <a class="dx-link" href="/offer">Оферта</a></span>
   </div>
 </footer>
+<div class="dx-modal" id="dx-lead" role="dialog" aria-modal="true" aria-labelledby="dx-lead-h" aria-hidden="true" data-open="false">
+  <div class="dx-modal-box">
+    <button class="dx-modal-close" type="button" data-dx-close aria-label="Закрыть"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h2 class="dx-h3" id="dx-lead-h">Записаться или задать вопрос</h2>
+    <form data-dx-lead novalidate style="display:flex;flex-direction:column;gap:12px">
+      <div class="dx-seg" role="radiogroup" aria-label="Что нужно">
+        <input type="radio" name="dx-g-kind" id="dx-g-k1" value="Ремонт" checked><label for="dx-g-k1">Ремонт</label>
+        <input type="radio" name="dx-g-kind" id="dx-g-k2" value="Покупка"><label for="dx-g-k2">Покупка</label>
+        <input type="radio" name="dx-g-kind" id="dx-g-k3" value="Trade-In"><label for="dx-g-k3">Trade-In</label>
+      </div>
+      <div class="dx-seg" role="radiogroup" aria-label="Филиал">
+        <input type="radio" name="dx-g-branch" id="dx-g-b1" value="Репина, 94" checked><label for="dx-g-b1">Репина, 94</label>
+        <input type="radio" name="dx-g-branch" id="dx-g-b2" value="Красный пер., 12"><label for="dx-g-b2">Красный пер., 12</label>
+      </div>
+      <div class="dx-field"><label class="dx-label" for="dx-g-device">Устройство и что случилось</label><input class="dx-input" id="dx-g-device" name="dx-g-device" type="text" placeholder="Например, iPhone 13 — разбит экран"></div>
+      <div class="dx-field"><label class="dx-label" for="dx-g-name">Имя</label><input class="dx-input" id="dx-g-name" name="dx-g-name" type="text" autocomplete="given-name"></div>
+      <div class="dx-field"><label class="dx-label" for="dx-g-phone">Телефон</label><input class="dx-input" id="dx-g-phone" name="dx-g-phone" type="tel" inputmode="tel" data-dx-phone placeholder="+7 (900) 000-00-00" autocomplete="tel" required></div>
+      <label class="dx-check"><input type="checkbox" name="dx-g-agree" id="dx-g-agree" required><span>Согласен на обработку персональных данных по <a class="dx-link" href="/privacy">политике</a></span></label>
+      <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="submit">Отправить заявку</button>
+    </form>
+    <p class="dx-form-status" data-dx-lead-status role="status" hidden></p>
+  </div>
+</div>
 <div class="dx-cookie" hidden><div class="dx-cookie-box">
   <p>Сайт использует cookie и Яндекс Метрику, чтобы считать посещения. Продолжая, вы соглашаетесь с <a class="dx-link" href="/privacy">политикой конфиденциальности</a>.</p>
   <button class="dx-btn dx-btn--primary dx-btn--sm" type="button" data-dx-cookie-ok>Понятно</button>

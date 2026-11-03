@@ -46,6 +46,7 @@
   function openModal(id) {
     var m = document.getElementById(id); if (!m) return;
     lastFocus = document.activeElement;
+    var lf = m.querySelector("form[data-dx-lead]"); if (lf && lf.hidden) { lf.hidden = false; var ls = m.querySelector("[data-dx-lead-status]"); if (ls) ls.hidden = true; }
     m.setAttribute("data-open", "true"); m.removeAttribute("aria-hidden");
     document.body.style.overflow = "hidden";
     var f = m.querySelector("input, select, button:not(.dx-modal-close)"); if (f) f.focus();
@@ -71,7 +72,10 @@
       if (menu) menu.setAttribute("data-open", String(open));
       return;
     }
-    if ((el = t.closest("[data-dx-open]"))) { e.preventDefault(); openModal(el.getAttribute("data-dx-open")); return; }
+    if ((el = t.closest("[data-dx-open]")) && document.getElementById(el.getAttribute("data-dx-open"))) {   // нет окна на странице — работает обычная ссылка
+      e.preventDefault(); var mn = document.getElementById("dx-menu"); if (mn) mn.setAttribute("data-open", "false");
+      openModal(el.getAttribute("data-dx-open")); return;
+    }
     if ((el = t.closest("[data-dx-close]"))) { closeModal(el.closest(".dx-modal")); return; }
     if (t.classList && t.classList.contains("dx-modal")) { closeModal(t); return; }
     if ((el = t.closest("[data-dx-cookie-ok]"))) {
@@ -133,6 +137,26 @@
       });
   }
   function validPhone(p) { var d = phoneDigits(p); return d.length === 11 && d[0] === "7"; }
+
+  /* Общее окно записи из шапки (в подвале на каждой странице) */
+  document.addEventListener("submit", function (e) {
+    var f = e.target;
+    if (!f.matches || !f.matches("form[data-dx-lead]")) return;
+    e.preventDefault();
+    var box = f.closest(".dx-modal-box") || f.parentNode, st = box.querySelector("[data-dx-lead-status]"), ph = f.elements["dx-g-phone"];
+    if (!validPhone(ph.value)) { ph.setAttribute("aria-invalid", "true"); ph.focus(); return; }
+    ph.removeAttribute("aria-invalid");
+    if (!f.elements["dx-g-agree"].checked) { f.elements["dx-g-agree"].focus(); return; }
+    var kind = (f.querySelector('input[name="dx-g-kind"]:checked') || {}).value || "Ремонт";
+    var btn = f.querySelector('button[type="submit"]'); btn.disabled = true;
+    sendLead({ form: "Шапка: " + kind, branch: (f.querySelector('input[name="dx-g-branch"]:checked') || {}).value,
+               name: f.elements["dx-g-name"].value.trim(), phone: ph.value, device: f.elements["dx-g-device"].value.trim(), service: kind })
+      .then(function (res) {
+        btn.disabled = false; st.hidden = false;
+        if (res.ok) { f.hidden = true; st.setAttribute("data-kind", "ok"); st.textContent = "Заявка принята. Менеджер перезвонит в течение 15 минут в рабочее время."; f.reset(); }
+        else { st.setAttribute("data-kind", "err"); st.textContent = "Не удалось отправить. Позвоните +7 (922) 025-21-21 или напишите в Telegram @displexpoint."; }
+      });
+  });
 
   window.DX = { applyTheme: applyTheme, openModal: openModal, closeModal: closeModal, formatPhone: formatPhone,
                 sendLead: sendLead, validPhone: validPhone, store: store };
