@@ -57,8 +57,9 @@ FOOTER = f"""<!-- Displex · ПОДВАЛ (блок «HTML код», после�
     <div><h4>Связаться</h4><ul class="dx-small"><li><a href="https://t.me/displexpoint">Telegram</a></li><li><a href="https://wa.me/79220252121">WhatsApp</a></li><li><a href="https://yandex.ru/maps/org/displex/41724692284/">Яндекс Карты · 4.9</a></li></ul></div>
   </div>
   <div class="dx-container dx-footer-legal">
-    <span>© 2026 Displex · ИП Гашков А. С.</span>
-    <span><a class="dx-link" href="/privacy">Политика конфиденциальности</a> · <a class="dx-link" href="/offer">Оферта</a></span>
+    <span>© 2026 Displex · ИП Гашков Александр Сергеевич · ИНН 665915129490 · ОГРНИП 322665800209156</span>
+    <span><a class="dx-link" href="/privacy">Политика конфиденциальности</a> · <a class="dx-link" href="/privacy#consent">Согласие на обработку ПДн</a></span>
+    <span style="flex-basis:100%">Информация на сайте носит справочный характер и не является публичной офертой (ст. 437 ГК РФ). Окончательная стоимость и сроки ремонта определяются после бесплатной диагностики.</span>
   </div>
 </footer>
 <div class="dx-modal" id="dx-lead" role="dialog" aria-modal="true" aria-labelledby="dx-lead-h" aria-hidden="true" data-open="false">
@@ -78,7 +79,7 @@ FOOTER = f"""<!-- Displex · ПОДВАЛ (блок «HTML код», после�
       <div class="dx-field"><label class="dx-label" for="dx-g-device">Устройство и что случилось</label><input class="dx-input" id="dx-g-device" name="dx-g-device" type="text" placeholder="Например, iPhone 13 — разбит экран"></div>
       <div class="dx-field"><label class="dx-label" for="dx-g-name">Имя</label><input class="dx-input" id="dx-g-name" name="dx-g-name" type="text" autocomplete="given-name"></div>
       <div class="dx-field"><label class="dx-label" for="dx-g-phone">Телефон</label><input class="dx-input" id="dx-g-phone" name="dx-g-phone" type="tel" inputmode="tel" data-dx-phone placeholder="+7 (900) 000-00-00" autocomplete="tel" required></div>
-      <label class="dx-check"><input type="checkbox" name="dx-g-agree" id="dx-g-agree" required><span>Согласен на обработку персональных данных по <a class="dx-link" href="/privacy">политике</a></span></label>
+      <label class="dx-check"><input type="checkbox" name="dx-g-agree" id="dx-g-agree" required><span>Даю <a class="dx-link" href="/privacy#consent">согласие на обработку персональных данных</a> и принимаю <a class="dx-link" href="/privacy">политику конфиденциальности</a></span></label>
       <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="submit">Отправить заявку</button>
     </form>
     <p class="dx-form-status" data-dx-lead-status role="status" hidden></p>
@@ -111,7 +112,7 @@ MODAL = """
         <div class="dx-field"><label class="dx-label" for="dx-ti-batt">АКБ, %</label><input class="dx-input" id="dx-ti-batt" name="dx-ti-batt" type="number" min="50" max="100" inputmode="numeric" placeholder="85"></div>
         <div class="dx-field" style="grid-column:1/-1"><label class="dx-label" for="dx-ti-cond">Состояние</label><select class="dx-select" id="dx-ti-cond" name="dx-ti-cond"><option value="">—</option><option>Идеальное</option><option>Отличное</option><option>Хорошее</option><option>Удовлетворительное</option><option>Разбит / не работает</option></select></div>
       </div>
-      <label class="dx-check"><input type="checkbox" name="dx-book-agree" id="dx-book-agree" required><span>Согласен на обработку персональных данных по <a class="dx-link" href="/privacy">политике</a></span></label>
+      <label class="dx-check"><input type="checkbox" name="dx-book-agree" id="dx-book-agree" required><span>Даю <a class="dx-link" href="/privacy#consent">согласие на обработку персональных данных</a> и принимаю <a class="dx-link" href="/privacy">политику конфиденциальности</a></span></label>
       <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="submit">Забронировать</button>
     </form>
     <p class="dx-form-status" data-book-status role="status" hidden></p>
@@ -329,7 +330,7 @@ def home_page():
     <div class="dx-field"><label class="dx-label" for="dx-lead-device">Устройство и что случилось</label><input class="dx-input" id="dx-lead-device" name="dx-lead-device" type="text" placeholder="Например, iPhone 13 — разбит экран"></div>
     <div class="dx-field"><label class="dx-label" for="dx-lead-name">Имя</label><input class="dx-input" id="dx-lead-name" name="dx-lead-name" type="text" autocomplete="given-name"></div>
     <div class="dx-field"><label class="dx-label" for="dx-lead-phone">Телефон</label><input class="dx-input" id="dx-lead-phone" name="dx-lead-phone" type="tel" inputmode="tel" data-dx-phone placeholder="+7 (900) 000-00-00" autocomplete="tel" required></div>
-    <label class="dx-check"><input type="checkbox" name="dx-lead-agree" id="dx-lead-agree" required><span>Согласен на обработку персональных данных по <a class="dx-link" href="/privacy">политике конфиденциальности</a></span></label>
+    <label class="dx-check"><input type="checkbox" name="dx-lead-agree" id="dx-lead-agree" required><span>Даю <a class="dx-link" href="/privacy#consent">согласие на обработку персональных данных</a> и принимаю <a class="dx-link" href="/privacy">политику конфиденциальности</a></span></label>
     <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="submit">Отправить заявку</button>
     <p class="dx-form-status" data-lead-status role="status" hidden></p>
   </form>
@@ -403,7 +404,7 @@ def prices_page():
       <div class="dx-field"><label class="dx-label" for="dx-r-name">Имя</label><input class="dx-input" id="dx-r-name" name="dx-r-name" type="text" autocomplete="given-name"></div>
       <div class="dx-field"><label class="dx-label" for="dx-r-phone">Телефон</label><input class="dx-input" id="dx-r-phone" name="dx-r-phone" type="tel" inputmode="tel" data-dx-phone placeholder="+7 (900) 000-00-00" autocomplete="tel" required></div>
       <div class="dx-field"><label class="dx-label" for="dx-r-comment">Удобное время или комментарий</label><input class="dx-input" id="dx-r-comment" name="dx-r-comment" type="text" placeholder="Например, сегодня после 18:00"></div>
-      <label class="dx-check"><input type="checkbox" name="dx-r-agree" id="dx-r-agree" required><span>Согласен на обработку персональных данных по <a class="dx-link" href="/privacy">политике</a></span></label>
+      <label class="dx-check"><input type="checkbox" name="dx-r-agree" id="dx-r-agree" required><span>Даю <a class="dx-link" href="/privacy#consent">согласие на обработку персональных данных</a> и принимаю <a class="dx-link" href="/privacy">политику конфиденциальности</a></span></label>
       <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="submit">Записаться</button>
     </form>
     <p class="dx-form-status" data-r-status role="status" hidden></p>
@@ -415,7 +416,78 @@ def prices_page():
 <script src="{CDN}/js/dx-prices.min.js" defer></script>
 """
 
+def privacy_page():
+    pol = open(os.path.join(os.path.dirname(__file__), "legal/policy.html")).read()
+    con = open(os.path.join(os.path.dirname(__file__), "legal/consent.html")).read()
+    return f"""<!-- Displex · ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ · адрес /privacy · {VER}
+     Настройки страницы в Creatium:
+       Title:       Политика конфиденциальности и согласие на обработку персональных данных — Displex
+       Description: Политика ИП Гашков А. С. (Displex) в отношении обработки персональных данных посетителей сайта apple-displex.ru и согласие на обработку персональных данных.
+-->
+<div class="dx-root dx-bleed">
+<section class="dx-container dx-cat-hero">
+  <nav class="dx-crumbs" aria-label="Хлебные крошки"><a href="/">Главная</a><span aria-hidden="true">/</span><span>Политика конфиденциальности</span></nav>
+  <h1 class="dx-h1">Политика конфиденциальности</h1>
+  <nav class="dx-chips" aria-label="Документы"><a class="dx-chip" href="#policy">Политика обработки ПДн</a><a class="dx-chip" href="#consent">Согласие на обработку ПДн</a></nav>
+</section>
+<div class="dx-container dx-legal" style="padding-bottom:64px">
+  <article id="policy">{pol}</article>
+  <article style="margin-top:48px">{con}</article>
+</div>
+</div>
+"""
+
+def page404():
+    return f"""<!-- Displex · 404 · {VER}
+     Настройки страницы в Creatium: Title «Страница не найдена — Displex», запретить индексацию (noindex, follow).
+-->
+<div class="dx-root dx-bleed">
+<section class="dx-container dx-section" style="display:flex;flex-direction:column;gap:20px;align-items:flex-start;min-height:50vh;justify-content:center">
+  <span class="dx-eyebrow">Ошибка 404</span>
+  <h1 class="dx-h1">Такой страницы нет</h1>
+  <p class="dx-lead">Возможно, ссылка устарела или в адресе опечатка. Вот куда можно перейти:</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="dx-btn dx-btn--primary" href="/">На главную</a>
+    <a class="dx-btn dx-btn--secondary" href="/catalog">Каталог</a>
+    <a class="dx-btn dx-btn--secondary" href="/calculator">Цены на ремонт</a>
+    <a class="dx-btn dx-btn--ghost" href="/catalog/used">Б/у техника</a>
+  </div>
+  <p class="dx-text-muted">Или позвоните: <a class="dx-link dx-num" href="tel:+79220252121">+7 (922) 025-21-21</a> · <a class="dx-link dx-num" href="tel:+79809303620">+7 (980) 930-36-20</a></p>
+</section>
+</div>
+"""
+
+ROBOTS = """User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /test*
+Disallow: /404
+Disallow: /*?*
+
+User-agent: Yandex
+Allow: /
+Disallow: /admin
+Disallow: /test*
+Disallow: /404
+Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&yclid&gclid&srtk /
+Clean-param: q&sort&f&cat&model /
+
+Sitemap: https://apple-displex.ru/sitemap.xml
+"""
+
+def sitemap():
+    today = datetime.date.today().isoformat()
+    urls = [("/", "daily", "1.0"), ("/catalog", "daily", "0.9")] + \
+           [(PAGES[k]["slug"], "daily", "0.8") for k in ["iphone", "mac", "ipad", "watch", "airpods", "used"]] + \
+           [("/calculator", "weekly", "0.9"), ("/privacy", "yearly", "0.2")]
+    body = "".join(f"  <url>\n    <loc>https://apple-displex.ru{u}</loc>\n    <lastmod>{today}</lastmod>\n    <changefreq>{c}</changefreq>\n    <priority>{pr}</priority>\n  </url>\n" for u, c, pr in urls)
+    return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{body}</urlset>\n'
+
 open(f"{OUT}/index_home.html", "w").write(home_page())
+open(f"{OUT}/privacy.html", "w").write(privacy_page())
+open(f"{OUT}/404.html", "w").write(page404())
+open(f"{OUT}/robots.txt", "w").write(ROBOTS)
+open(f"{OUT}/sitemap.xml", "w").write(sitemap())
 open(f"{OUT}/calculator_prices.html", "w").write(prices_page())
 open(f"{OUT}/00_header.html", "w").write(HEADER)
 open(f"{OUT}/99_footer.html", "w").write(FOOTER)
@@ -425,7 +497,7 @@ for k, p in PAGES.items():
     open(f"{OUT}/{fn}", "w").write(page(k, p))
     rows.append((p["slug"], fn, p["title"], p["desc"], p["h1"]))
 with open(f"{OUT}/README_страницы.md", "w") as f:
-    f.write(f"# Displex — блоки для Creatium ({VER})\n\nНа каждой странице 3 блока «HTML код» по порядку: `00_header.html` → блок страницы → `99_footer.html`.\n\n## / (главная)\n- Блок: `index_home.html`\n- Title: Ремонт iPhone и техника Apple в Екатеринбурге — Displex\n- Description: Ремонт iPhone, iPad, Mac и Apple Watch в Екатеринбурге: бесплатная диагностика, цена до начала работ, гарантия до 1 года. Новые и б/у iPhone, Trade-In. Репина 94 и Красный пер. 12.\n- H1: Ремонт и техника Apple. Цена — до начала работ.\n\n## /calculator (цены на ремонт)\n- Блок: `calculator_prices.html`\n- Title: Цены на ремонт iPhone и Apple Watch в Екатеринбурге — Displex\n- Description: Прайс на ремонт iPhone 7–17 Pro Max и Apple Watch: замена дисплея, аккумулятора, заднего стекла, камеры, ремонт платы. Сроки и гарантия по каждой услуге. Бесплатная диагностика.\n- H1: Цены на ремонт iPhone и Apple Watch\n\n")
+    f.write(f"# Displex — блоки для Creatium ({VER})\n\nНа каждой странице 3 блока «HTML код» по порядку: `00_header.html` → блок страницы → `99_footer.html`.\n\n## / (главная)\n- Блок: `index_home.html`\n- Title: Ремонт iPhone и техника Apple в Екатеринбурге — Displex\n- Description: Ремонт iPhone, iPad, Mac и Apple Watch в Екатеринбурге: бесплатная диагностика, цена до начала работ, гарантия до 1 года. Новые и б/у iPhone, Trade-In. Репина 94 и Красный пер. 12.\n- H1: Ремонт и техника Apple. Цена — до начала работ.\n\n## /calculator (цены на ремонт)\n- Блок: `calculator_prices.html`\n- Title: Цены на ремонт iPhone и Apple Watch в Екатеринбурге — Displex\n- Description: Прайс на ремонт iPhone 7–17 Pro Max и Apple Watch: замена дисплея, аккумулятора, заднего стекла, камеры, ремонт платы. Сроки и гарантия по каждой услуге. Бесплатная диагностика.\n- H1: Цены на ремонт iPhone и Apple Watch\n\n## /privacy\n- Блок: `privacy.html`\n- Title: Политика конфиденциальности и согласие на обработку персональных данных — Displex\n\n## 404\n- Блок: `404.html` (страница ошибки в настройках Creatium), noindex\n\n## robots.txt и sitemap.xml\n- Настройки сайта → Robots.txt и Sitemap.xml: вставить содержимое `robots.txt` и `sitemap.xml`\n\n")
     for slug, fn, t, d, h in rows:
         f.write(f"## {slug}\n- Блок: `{fn}`\n- Title: {t}\n- Description: {d}\n- H1: {h}\n\n")
 print("\n".join(sorted(os.listdir(OUT))))
