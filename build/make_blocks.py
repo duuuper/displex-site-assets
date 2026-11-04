@@ -4,7 +4,7 @@
 import sys, os, json, html, datetime, re
 VER = sys.argv[1] if len(sys.argv) > 1 else "main"
 OUT = sys.argv[2] if len(sys.argv) > 2 else "out"
-MAP_REPINA = "https://yandex.ru/maps/?text=Екатеринбург, Репина 94, Displex"
+MAP_REPINA = "https://yandex.ru/maps/org/apple_service/80327936020/"
 CDN = f"https://cdn.jsdelivr.net/gh/duuuper/displex-site-assets@{VER}"
 os.makedirs(OUT, exist_ok=True)
 E = html.escape
@@ -55,7 +55,7 @@ FOOTER = f"""<!-- Displex · ПОДВАЛ (блок «HTML код», после�
     <div style="display:flex;flex-direction:column;gap:12px"><span class="dx-logo">DISPLEX</span><p class="dx-small dx-text-muted">Ремонт и продажа техники Apple в Екатеринбурге. Независимый сервис, не связан с Apple Inc.</p></div>
     <div><h4>Репина, 94</h4><ul class="dx-small"><li>ТРЦ «Радуга Парк», 1 этаж</li><li>Ежедневно 10:00–22:00</li><li><a href="tel:+79220252121" class="dx-num">+7 (922) 025-21-21</a></li></ul></div>
     <div><h4>Красный пер., 12</h4><ul class="dx-small"><li>Центр, м. Динамо</li><li>Ежедневно 11:00–20:00</li><li><a href="tel:+79809303620" class="dx-num">+7 (980) 930-36-20</a></li></ul></div>
-    <div><h4>Связаться</h4><ul class="dx-small"><li><a href="https://t.me/displexpoint">Telegram</a></li><li><a href="https://wa.me/79220252121">WhatsApp</a></li><li><a href="https://yandex.ru/maps/org/displex/41724692284/">Яндекс Карты · 4.9</a></li></ul></div>
+    <div><h4>Связаться</h4><ul class="dx-small"><li><a href="https://t.me/displexpoint">Telegram</a></li><li><a href="https://wa.me/79220252121">WhatsApp</a></li><li><a href="https://yandex.ru/maps/org/displex/41724692284/">Яндекс Карты · 5,0</a></li></ul></div>
   </div>
   <div class="dx-container dx-footer-legal">
     <span>© 2026 Displex · ИП Гашков Александр Сергеевич · ИНН 665915129490 · ОГРНИП 322665800209156</span>
@@ -279,7 +279,7 @@ def home_page():
 </section>
 
 <section class="dx-section--tint"><div class="dx-container dx-stats" style="padding-block:32px">
-  <div><div class="dx-stat-value">4.9 ★</div><div class="dx-stat-label">рейтинг на Яндекс Картах</div></div>
+  <div><div class="dx-stat-value">5,0 ★</div><div class="dx-stat-label">рейтинг на Яндекс Картах</div></div>
   <div><div class="dx-stat-value">0 ₽</div><div class="dx-stat-label">диагностика при любом исходе</div></div>
   <div><div class="dx-stat-value">до 1 года</div><div class="dx-stat-label">гарантия на оригинальные запчасти</div></div>
   <div><div class="dx-stat-value">2</div><div class="dx-stat-label">филиала в Екатеринбурге</div></div>
@@ -301,11 +301,11 @@ def home_page():
 <section class="dx-section"><div class="dx-container dx-two">
   <div class="dx-stack">
     <h2 class="dx-h2">Отзывы</h2>
-    <div class="dx-rating"><span class="dx-rating-num">4.9</span><div><div class="dx-stars" aria-hidden="true">★★★★★</div><div class="dx-small dx-text-muted">рейтинг Displex на Яндекс Картах</div></div></div>
+    <div class="dx-rating"><span class="dx-rating-num">5,0</span><div><div class="dx-stars" aria-hidden="true">★★★★★</div><div class="dx-small dx-text-muted">у обоих филиалов на Яндекс Картах</div></div></div>
     <p class="dx-text-muted">Отзывы публикуются на Яндекс Картах. Мы их не редактируем и не удаляем.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <a class="dx-btn dx-btn--secondary" href="https://yandex.ru/maps/org/displex/41724692284/reviews/" target="_blank" rel="noopener">Все отзывы</a>
-      <a class="dx-btn dx-btn--ghost" href="https://yandex.ru/maps/org/displex/41724692284/reviews/?add-review=true" target="_blank" rel="noopener">Оставить отзыв</a>
+      <a class="dx-btn dx-btn--secondary" href="https://yandex.ru/maps/org/apple_service/80327936020/reviews/" target="_blank" rel="noopener">Отзывы · Репина, 94</a>
+      <a class="dx-btn dx-btn--secondary" href="https://yandex.ru/maps/org/displex/41724692284/reviews/" target="_blank" rel="noopener">Отзывы · Красный пер., 12</a>
     </div>
   </div>
   <div class="dx-reviews" data-reviews><p class="dx-text-muted" style="padding:20px">Загружаем отзывы с Яндекс Карт…</p></div>
@@ -314,7 +314,7 @@ def home_page():
 <section class="dx-section dx-section--tint" id="booking"><div class="dx-container dx-two">
   <div class="dx-stack" style="gap:18px">
     <h2 class="dx-h2">Два филиала</h2>
-    <div class="dx-branch-card"><div class="dx-h3">ул. Репина, 94 · ТРЦ «Радуга Парк»</div><div class="dx-text-muted">Каждый день 10:00–22:00</div><a class="dx-link dx-num" href="tel:+79220252121">+7 (922) 025-21-21</a><a class="dx-link dx-small" href="{MAP_REPINA}" target="_blank" rel="noopener">Открыть в Яндекс Картах</a></div>
+    <div class="dx-branch-card"><div class="dx-h3">ул. Репина, 94 · ТРЦ «Радуга Парк»</div><div class="dx-text-muted">Каждый день 10:00–22:00</div><a class="dx-link dx-num" href="tel:+79220252121">+7 (922) 025-21-21</a><a class="dx-link dx-small" href="https://yandex.ru/maps/org/apple_service/80327936020/" target="_blank" rel="noopener">Открыть в Яндекс Картах</a></div>
     <div class="dx-branch-card"><div class="dx-h3">Красный пер., 12 · м. Динамо</div><div class="dx-text-muted">Каждый день 11:00–20:00</div><a class="dx-link dx-num" href="tel:+79809303620">+7 (980) 930-36-20</a><a class="dx-link dx-small" href="https://yandex.ru/maps/org/displex/41724692284/" target="_blank" rel="noopener">Открыть в Яндекс Картах</a></div>
   </div>
   <form class="dx-panel-dark dx-stack" data-lead-form novalidate>
