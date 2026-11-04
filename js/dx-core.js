@@ -158,6 +158,25 @@
       });
   });
 
+  /* Подсказка в поле «Устройство» зависит от типа заявки */
+  var KIND_TEXT = {
+    "Ремонт":   ["Устройство и что случилось", "Например, iPhone 13 — разбит дисплей"],
+    "Покупка":  ["Что хотите купить", "Например, iPhone 17 Pro 256 ГБ, синий"],
+    "Trade-In": ["Что сдаёте и на что меняете", "Например, iPhone 13 → хочу обменять на iPhone 15"]
+  };
+  function syncKind(form) {
+    if (!form) return;
+    var r = form.querySelector('input[type="radio"][name$="-kind"]:checked'); if (!r) return;
+    var txt = KIND_TEXT[r.value]; if (!txt) return;
+    var lab = form.querySelector("[data-kind-label]"), inp = form.querySelector("[data-kind-target]");
+    if (lab) lab.textContent = txt[0];
+    if (inp) inp.placeholder = txt[1];
+  }
+  document.addEventListener("change", function (e) {
+    var t = e.target;
+    if (t.matches && t.matches('input[type="radio"][name$="-kind"]')) syncKind(t.form || t.closest("form"));
+  });
+
   window.DX = { applyTheme: applyTheme, openModal: openModal, closeModal: closeModal, formatPhone: formatPhone,
-                sendLead: sendLead, validPhone: validPhone, store: store };
+                sendLead: sendLead, validPhone: validPhone, store: store, syncKind: syncKind };
 })();

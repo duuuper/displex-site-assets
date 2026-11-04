@@ -120,6 +120,7 @@
   var form = $("[data-lead-form]");
   function toForm(kind, text) {
     var r = form.querySelector('input[name="dx-lead-kind"][value="' + kind + '"]'); if (r) r.checked = true;
+    if (window.DX && window.DX.syncKind) window.DX.syncKind(form);
     if (text != null) form.elements["dx-lead-device"].value = text;
     form.scrollIntoView({ behavior: "smooth", block: "start" });
     setTimeout(function () { form.elements["dx-lead-phone"].focus({ preventScroll: true }); }, 400);

@@ -4,6 +4,7 @@
 import sys, os, json, html, datetime, re
 VER = sys.argv[1] if len(sys.argv) > 1 else "main"
 OUT = sys.argv[2] if len(sys.argv) > 2 else "out"
+MAP_REPINA = "https://yandex.ru/maps/?text=Екатеринбург, Репина 94, Displex"
 CDN = f"https://cdn.jsdelivr.net/gh/duuuper/displex-site-assets@{VER}"
 os.makedirs(OUT, exist_ok=True)
 E = html.escape
@@ -20,7 +21,7 @@ HEADER = f"""<!-- Displex · ШАПКА (блок «HTML код», первый 
   <div class="dx-topbar"><div class="dx-container dx-topbar-in">
     <div class="dx-topbar-branches">
       <span class="dx-branch"><span class="dx-branch-name">Репина, 94</span><span class="dx-branch-hint">ТРЦ «Радуга Парк» · 10:00–22:00</span><a href="tel:+79220252121">+7 922 025-21-21</a></span>
-      <span class="dx-branch"><span class="dx-branch-name">Красный пер., 12</span><span class="dx-branch-hint">м. Динамо · 10:00–21:00</span><a href="tel:+79809303620">+7 980 930-36-20</a></span>
+      <span class="dx-branch"><span class="dx-branch-name">Красный пер., 12</span><span class="dx-branch-hint">м. Динамо · 11:00–20:00</span><a href="tel:+79809303620">+7 980 930-36-20</a></span>
     </div>
     <span class="dx-topbar-note">Диагностика 0 ₽ при любом исходе</span>
   </div></div>
@@ -53,7 +54,7 @@ FOOTER = f"""<!-- Displex · ПОДВАЛ (блок «HTML код», после�
   <div class="dx-container dx-footer-grid">
     <div style="display:flex;flex-direction:column;gap:12px"><span class="dx-logo">DISPLEX</span><p class="dx-small dx-text-muted">Ремонт и продажа техники Apple в Екатеринбурге. Независимый сервис, не связан с Apple Inc.</p></div>
     <div><h4>Репина, 94</h4><ul class="dx-small"><li>ТРЦ «Радуга Парк», 1 этаж</li><li>Ежедневно 10:00–22:00</li><li><a href="tel:+79220252121" class="dx-num">+7 (922) 025-21-21</a></li></ul></div>
-    <div><h4>Красный пер., 12</h4><ul class="dx-small"><li>Центр, м. Динамо</li><li>Пн–Пт 10:00–21:00</li><li>Сб–Вс 11:00–20:00</li><li><a href="tel:+79809303620" class="dx-num">+7 (980) 930-36-20</a></li></ul></div>
+    <div><h4>Красный пер., 12</h4><ul class="dx-small"><li>Центр, м. Динамо</li><li>Ежедневно 11:00–20:00</li><li><a href="tel:+79809303620" class="dx-num">+7 (980) 930-36-20</a></li></ul></div>
     <div><h4>Связаться</h4><ul class="dx-small"><li><a href="https://t.me/displexpoint">Telegram</a></li><li><a href="https://wa.me/79220252121">WhatsApp</a></li><li><a href="https://yandex.ru/maps/org/displex/41724692284/">Яндекс Карты · 4.9</a></li></ul></div>
   </div>
   <div class="dx-container dx-footer-legal">
@@ -76,7 +77,7 @@ FOOTER = f"""<!-- Displex · ПОДВАЛ (блок «HTML код», после�
         <input type="radio" name="dx-g-branch" id="dx-g-b1" value="Репина, 94" checked><label for="dx-g-b1">Репина, 94</label>
         <input type="radio" name="dx-g-branch" id="dx-g-b2" value="Красный пер., 12"><label for="dx-g-b2">Красный пер., 12</label>
       </div>
-      <div class="dx-field"><label class="dx-label" for="dx-g-device">Устройство и что случилось</label><input class="dx-input" id="dx-g-device" name="dx-g-device" type="text" placeholder="Например, iPhone 13 — разбит экран"></div>
+      <div class="dx-field"><label class="dx-label" for="dx-g-device" data-kind-label>Устройство и что случилось</label><input class="dx-input" id="dx-g-device" name="dx-g-device" type="text" placeholder="Например, iPhone 13 — разбит дисплей" data-kind-target></div>
       <div class="dx-field"><label class="dx-label" for="dx-g-name">Имя</label><input class="dx-input" id="dx-g-name" name="dx-g-name" type="text" autocomplete="given-name"></div>
       <div class="dx-field"><label class="dx-label" for="dx-g-phone">Телефон</label><input class="dx-input" id="dx-g-phone" name="dx-g-phone" type="tel" inputmode="tel" data-dx-phone placeholder="+7 (900) 000-00-00" autocomplete="tel" required></div>
       <label class="dx-check"><input type="checkbox" name="dx-g-agree" id="dx-g-agree" required><span>Даю <a class="dx-link" href="/privacy#consent">согласие на обработку персональных данных</a> и принимаю <a class="dx-link" href="/privacy">политику конфиденциальности</a></span></label>
@@ -189,7 +190,7 @@ def page(key, p):
   <nav class="dx-crumbs" aria-label="Хлебные крошки">{crumbs}</nav>
   <h1 class="dx-h1">{E(p['h1'])}</h1>
   <p class="dx-lead">{E(p['lead'])}</p>
-  {'' if key == 'used' else '<nav class="dx-cat-tabs" aria-label="Разделы каталога">' + tabs + '</nav>'}
+  <nav class="dx-cat-tabs" aria-label="Разделы каталога">{tabs}</nav>
 </section>
 <div class="dx-container">
   <div class="dx-toolbar">
@@ -232,7 +233,7 @@ def home_page():
             {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in HOME_FAQ]}]
     for name, street, phone, hours in [
         ("Displex — Репина, 94", "ул. Репина, 94, ТРЦ «Радуга Парк», 1 этаж", "+7 922 025-21-21", ["Mo-Su 10:00-22:00"]),
-        ("Displex — Красный переулок, 12", "Красный переулок, 12", "+7 980 930-36-20", ["Mo-Fr 10:00-21:00", "Sa-Su 11:00-20:00"])]:
+        ("Displex — Красный переулок, 12", "Красный переулок, 12", "+7 980 930-36-20", ["Mo-Su 11:00-20:00"])]:
         ld.append({"@context": "https://schema.org", "@type": "ElectronicsStore", "name": name, "url": "https://apple-displex.ru/",
                    "telephone": phone, "openingHours": hours, "priceRange": "₽₽",
                    "address": {"@type": "PostalAddress", "streetAddress": street, "addressLocality": "Екатеринбург", "addressCountry": "RU"}})
@@ -313,8 +314,8 @@ def home_page():
 <section class="dx-section dx-section--tint" id="booking"><div class="dx-container dx-two">
   <div class="dx-stack" style="gap:18px">
     <h2 class="dx-h2">Два филиала</h2>
-    <div class="dx-branch-card"><div class="dx-h3">ул. Репина, 94 · ТРЦ «Радуга Парк»</div><div class="dx-text-muted">Каждый день 10:00–22:00</div><a class="dx-link dx-num" href="tel:+79220252121">+7 (922) 025-21-21</a><a class="dx-link dx-small" href="https://yandex.ru/maps/?text=Екатеринбург, Репина 94" target="_blank" rel="noopener">Маршрут в Яндекс Картах</a></div>
-    <div class="dx-branch-card"><div class="dx-h3">Красный пер., 12 · м. Динамо</div><div class="dx-text-muted">Пн–пт 10:00–21:00, сб–вс 11:00–20:00</div><a class="dx-link dx-num" href="tel:+79809303620">+7 (980) 930-36-20</a><a class="dx-link dx-small" href="https://yandex.ru/maps/?text=Екатеринбург, Красный переулок 12" target="_blank" rel="noopener">Маршрут в Яндекс Картах</a></div>
+    <div class="dx-branch-card"><div class="dx-h3">ул. Репина, 94 · ТРЦ «Радуга Парк»</div><div class="dx-text-muted">Каждый день 10:00–22:00</div><a class="dx-link dx-num" href="tel:+79220252121">+7 (922) 025-21-21</a><a class="dx-link dx-small" href="{MAP_REPINA}" target="_blank" rel="noopener">Открыть в Яндекс Картах</a></div>
+    <div class="dx-branch-card"><div class="dx-h3">Красный пер., 12 · м. Динамо</div><div class="dx-text-muted">Каждый день 11:00–20:00</div><a class="dx-link dx-num" href="tel:+79809303620">+7 (980) 930-36-20</a><a class="dx-link dx-small" href="https://yandex.ru/maps/org/displex/41724692284/" target="_blank" rel="noopener">Открыть в Яндекс Картах</a></div>
   </div>
   <form class="dx-panel-dark dx-stack" data-lead-form novalidate>
     <h2 class="dx-h3">Записаться или забронировать</h2>
@@ -327,7 +328,7 @@ def home_page():
       <input type="radio" name="dx-lead-branch" id="dx-lb1" value="Репина, 94" checked><label for="dx-lb1">Репина, 94</label>
       <input type="radio" name="dx-lead-branch" id="dx-lb2" value="Красный пер., 12"><label for="dx-lb2">Красный пер., 12</label>
     </div>
-    <div class="dx-field"><label class="dx-label" for="dx-lead-device">Устройство и что случилось</label><input class="dx-input" id="dx-lead-device" name="dx-lead-device" type="text" placeholder="Например, iPhone 13 — разбит экран"></div>
+    <div class="dx-field"><label class="dx-label" for="dx-lead-device" data-kind-label>Устройство и что случилось</label><input class="dx-input" id="dx-lead-device" name="dx-lead-device" type="text" placeholder="Например, iPhone 13 — разбит дисплей" data-kind-target></div>
     <div class="dx-field"><label class="dx-label" for="dx-lead-name">Имя</label><input class="dx-input" id="dx-lead-name" name="dx-lead-name" type="text" autocomplete="given-name"></div>
     <div class="dx-field"><label class="dx-label" for="dx-lead-phone">Телефон</label><input class="dx-input" id="dx-lead-phone" name="dx-lead-phone" type="tel" inputmode="tel" data-dx-phone placeholder="+7 (900) 000-00-00" autocomplete="tel" required></div>
     <label class="dx-check"><input type="checkbox" name="dx-lead-agree" id="dx-lead-agree" required><span>Даю <a class="dx-link" href="/privacy#consent">согласие на обработку персональных данных</a> и принимаю <a class="dx-link" href="/privacy">политику конфиденциальности</a></span></label>
@@ -341,7 +342,7 @@ def home_page():
 <section class="dx-section"><div class="dx-container dx-seo">
   <h2 class="dx-h2">Ремонт iPhone в Екатеринбурге</h2>
   <p>Displex ремонтирует iPhone, iPad, MacBook и Apple Watch в двух филиалах: на Репина, 94 в ТРЦ «Радуга Парк» и на Красном переулке, 12 у метро Динамо. Диагностика бесплатная, цену называем до начала работ, и она не меняется без вашего согласия.</p>
-  <p>Для замены дисплея предлагаем несколько вариантов: переклейку стекла с сохранением родной матрицы, снятый оригинал, Service Pack или копию OLED/TFT. Аккумуляторы — оригинал или копия с привязкой. На оригинальные запчасти даём гарантию 1 год, на копии — 6 месяцев.</p>
+  <p>Для замены дисплея предлагаем несколько вариантов: переклейку стекла с сохранением родной матрицы, снятый оригинал, Service Pack или копию OLED/TFT. Аккумуляторы — оригинал, оригинал с привязкой или копия премиум. На оригинальные запчасти даём гарантию 1 год, на копии — 6 месяцев.</p>
   <p>В магазине — новые iPhone, MacBook, iPad, Apple Watch и AirPods, а также проверенные б/у устройства с гарантией. Старый телефон можно сдать в Trade-In.</p>
   <div class="dx-faq">{faq}</div>
 </div></section>
@@ -496,7 +497,7 @@ def prices_page():
   <h2 class="dx-h2">Ремонт по сериям</h2>
   <nav class="dx-chips" aria-label="Ремонт по сериям">{"".join(f'<a class="dx-chip" href="/remont/{x["slug"]}">{E(x["name"])}</a>' for x in _SERIES)}</nav>
   <h2 class="dx-h2">Как мы считаем цену</h2>
-  <p>Цена в прайсе включает запчасть и работу мастера. Для дисплея есть несколько вариантов: переклейка стекла с сохранением родной матрицы, снятый оригинал, Service Pack или копия OLED/TFT. Для аккумулятора — оригинал, копия премиум или копия с привязкой, без уведомления о неоригинальной батарее.</p>
+  <p>Цена в прайсе включает запчасть и работу мастера. Для дисплея есть несколько вариантов: переклейка стекла с сохранением родной матрицы, снятый оригинал, Service Pack или копия OLED/TFT. Для аккумулятора — копия премиум, оригинал или оригинал с привязкой — без уведомления о неоригинальной батарее.</p>
   <p>Ремонт делаем в двух филиалах: Репина, 94 (ТРЦ «Радуга Парк») и Красный переулок, 12 (м. Динамо).</p>
   <div class="dx-faq">{faq}</div>
 </div></section>
