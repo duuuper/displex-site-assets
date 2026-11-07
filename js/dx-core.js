@@ -109,9 +109,13 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { initCookie(); applyTheme(store(KEY_THEME)); });
   else initCookie();
 
-  /* ---------- Заявки → Apps Script (таблица «Заявки» + Telegram-группа) ---------- */
+  /* ---------- Заявки → Displex CRM (карточка в чат сотрудников); CRM недоступна — запасной путь Apps Script ---------- */
+  // Адрес и ключ CRM задаются в блоке шапки Creatium: <script>window.DX_CRM={url:"…",key:"…"}</script>.
+  // Ключ с правом только «создание заявок»; без него — сразу запасной путь.
+  var CRM = window.DX_CRM || {};
+  var CRM_URL = CRM.url || "https://crm.apple-displex.ru/api/v1/leads";
   var LEAD_URL = "https://script.google.com/macros/s/AKfycby4lhzUgEND7oM160rA49jHts7U9pVs9oHvudcJLNcjh9sHndatdxkKSifXriEBFRW3/exec";
-  var SITE_KEY = "ff31fe3064da4188a7ba3e77eb193098";   // публичный ключ сайта, не секрет
+  var SITE_KEY = "ff31fe3064da4188a7ba3e77eb193098";   // запасной путь (таблица «Заявки»)
   var UTM = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "yclid", "gclid"];
   (function rememberUtm() {                            // первая метка визита живёт до закрытия вкладки
     try {
@@ -121,20 +125,53 @@
     } catch (e) {}
   })();
   function phoneDigits(p) { return String(p || "").replace(/\D/g, ""); }
-  function sendLead(data) {
-    var body = { lead_id: "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-                 page: location.pathname, channel: "site" };
+  function utm() { try { return JSON.parse(sessionStorage.getItem("dx-utm") || "{}"); } catch (e) { return {}; } }
+
+  /* Поля формы → заявка CRM: вид (ремонт / покупка / Trade-In), что чинить или что хочет купить, бюджет, метки */
+  function toCrm(d, u) {
+    var svc = String(d.service || ""), form = String(d.form || "");
+    var kind = /trade-?in/i.test(svc + " " + form) ? "tradein"
+             : (/^(Покупка|Новый:|Б\/у:)/.test(svc) || /бронь/i.test(form)) ? "sale" : "repair";
+    var body = { name: d.name || "Клиент с сайта", phone: d.phone, kind: kind, branch: d.branch };
+    if (kind === "repair") body.device = d.device;
+    else if (/бронь/i.test(form)) body.want = svc || d.device;        // каталог: что бронирует
+    else if (kind === "sale") body.want = d.device;
+    else body.device = d.device;                                       // Trade-In: что сдаёт → на что меняет
+    if (d.amount) body.budget = String(d.amount);
+    var note = [d.comment, kind === "repair" && svc && svc !== "Ремонт" && svc !== d.device ? svc : "", form + " · " + location.pathname];
+    body.comment = note.filter(Boolean).join("\n");
+    if (u.utm_source) body.utm_source = u.utm_source;
+    var camp = [u.utm_campaign, u.utm_content].filter(Boolean).join(" / ");
+    if (camp) body.utm_campaign = camp;
+    if (!u.utm_source && (u.yclid || u.gclid)) body.utm_source = u.yclid ? "yandex" : "google";
+    return body;
+  }
+  function sendBackup(data, u) {
+    var body = { lead_id: "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), page: location.pathname, channel: "site" };
     Object.keys(data || {}).forEach(function (k) { if (data[k] != null && data[k] !== "") body[k] = data[k]; });
-    try { var u = JSON.parse(sessionStorage.getItem("dx-utm") || "{}"); Object.keys(u).forEach(function (k) { body[k] = u[k]; }); } catch (e) {}
+    Object.keys(u).forEach(function (k) { body[k] = u[k]; });
     var url = LEAD_URL + "?key=" + encodeURIComponent(SITE_KEY);
-    var opts = { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) };
-    return fetch(url, opts).then(function (r) { return r.json(); }).then(
-      function (j) { return j && j.ok === false ? { ok: false, error: j.error || "rejected" } : { ok: true, id: body.lead_id }; },
-      function () {                                     // ответ не прочитать (сеть/CORS) — отправляем вслепую, дубль отсечёт lead_id
-        opts.mode = "no-cors";
-        return fetch(url, opts).then(function () { return { ok: true, id: body.lead_id, blind: true }; },
-                                     function () { return { ok: false, error: "network" }; });
+    var opts = { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) };
+    return fetch(url, opts).then(function () { return { ok: true, backup: true }; }, function () { return { ok: false, error: "network" }; });
+  }
+  function sendLead(data) {
+    var u = utm();
+    if (!CRM.key) return sendBackup(data, u);
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = ctrl && setTimeout(function () { ctrl.abort(); }, 12000);
+    return fetch(CRM_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + CRM.key },
+      body: JSON.stringify(toCrm(data || {}, u)),
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) {
+      if (timer) clearTimeout(timer);
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        if (r.ok && j.ok !== false) return { ok: true, id: j.id };
+        if (r.status === 422) return { ok: false, error: j.error || "rejected" };   // ошибка в данных — повтор не поможет
+        return sendBackup(data, u);                                               // ключ, сервер — запасной путь
       });
+    }, function () { if (timer) clearTimeout(timer); return sendBackup(data, u); });  // сеть/CORS — запасной путь
   }
   function validPhone(p) { var d = phoneDigits(p); return d.length === 11 && d[0] === "7"; }
 
