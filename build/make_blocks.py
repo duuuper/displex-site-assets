@@ -139,7 +139,7 @@ SEARCH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 PAGES = {
  "all":    dict(slug="/catalog", crumb="Каталог", h1="Техника Apple в Екатеринбурге",
                lead="Новые iPhone, Mac, iPad, Apple Watch и AirPods в наличии и проверенные б/у устройства. Цены обновляются каждый день, бронь бесплатная на 24 часа.",
-               title="Купить технику Apple в Екатеринбурге — iPhone, MacBook, iPad, Watch | Displex",
+               title="Техника Apple в Екатеринбурге: iPhone, MacBook, iPad, Watch | Displex",
                desc="Новые и б/у iPhone, MacBook, iPad, Apple Watch и AirPods в Екатеринбурге. Цены обновляются ежедневно, бронь на 24 часа, Trade-In, рассрочка. Два магазина: Репина 94 и Красный пер. 12.",
                seo="Displex — магазин и сервисный центр техники Apple в Екатеринбурге. В каталоге новые устройства в наличии у партнёров-поставщиков и б/у техника, которую проверил наш мастер. Цены на сайте те же, что в наших Telegram-каналах, и обновляются автоматически."),
  "iphone": dict(slug="/catalog/iphone", crumb="iPhone", h1="Купить iPhone в Екатеринбурге",
@@ -533,7 +533,7 @@ def privacy_page():
     con = open(os.path.join(os.path.dirname(__file__), "legal/consent.html")).read()
     return f"""<!-- Displex · ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ · адрес /privacy · {VER}
      Настройки страницы в Creatium:
-       Title:       Политика конфиденциальности и согласие на обработку персональных данных — Displex
+       Title:       Политика конфиденциальности и согласие на обработку ПДн — Displex
        Description: Политика ИП Гашков А. С. (Displex) в отношении обработки персональных данных посетителей сайта apple-displex.ru и согласие на обработку персональных данных.
 -->
 <div class="dx-root dx-bleed">
@@ -615,7 +615,7 @@ for k, p in PAGES.items():
     open(f"{OUT}/{fn}", "w").write(page(k, p))
     rows.append((p["slug"], fn, p["title"], p["desc"], p["h1"]))
 with open(f"{OUT}/README_страницы.md", "w") as f:
-    f.write(f"# Displex — блоки для Creatium ({VER})\n\nНа каждой странице 3 блока «HTML код» по порядку: `00_header.html` → блок страницы → `99_footer.html`.\n\n## / (главная)\n- Блок: `index_home.html`\n- Title: Ремонт iPhone и техника Apple в Екатеринбурге — Displex\n- Description: Ремонт iPhone, iPad, Mac и Apple Watch в Екатеринбурге: бесплатная диагностика, цена до начала работ, гарантия до 1 года. Новые и б/у iPhone, Trade-In. Репина 94 и Красный пер. 12.\n- H1: Ремонт и техника Apple. Цена — до начала работ.\n\n## /calculator (цены на ремонт)\n- Блок: `calculator_prices.html`\n- Title: Цены на ремонт iPhone и Apple Watch в Екатеринбурге — Displex\n- Description: Прайс на ремонт iPhone 7–17 Pro Max и Apple Watch: замена дисплея, аккумулятора, заднего стекла, камеры, ремонт платы. Сроки и гарантия по каждой услуге. Бесплатная диагностика.\n- H1: Цены на ремонт iPhone и Apple Watch\n\n## /privacy\n- Блок: `privacy.html`\n- Title: Политика конфиденциальности и согласие на обработку персональных данных — Displex\n\n## 404\n- Блок: `404.html` (страница ошибки в настройках Creatium), noindex\n\n## robots.txt и sitemap.xml\n- Настройки сайта → Robots.txt и Sitemap.xml: вставить содержимое `robots.txt` и `sitemap.xml`\n\n")
+    f.write(f"# Displex — блоки для Creatium ({VER})\n\nНа каждой странице 3 блока «HTML код» по порядку: `00_header.html` → блок страницы → `99_footer.html`.\n\n## / (главная)\n- Блок: `index_home.html`\n- Title: Ремонт iPhone и техника Apple в Екатеринбурге — Displex\n- Description: Ремонт iPhone, iPad, Mac и Apple Watch в Екатеринбурге: бесплатная диагностика, цена до начала работ, гарантия до 1 года. Новые и б/у iPhone, Trade-In. Репина 94 и Красный пер. 12.\n- H1: Ремонт и техника Apple. Цена — до начала работ.\n\n## /calculator (цены на ремонт)\n- Блок: `calculator_prices.html`\n- Title: Цены на ремонт iPhone и Apple Watch в Екатеринбурге — Displex\n- Description: Прайс на ремонт iPhone 7–17 Pro Max и Apple Watch: замена дисплея, аккумулятора, заднего стекла, камеры, ремонт платы. Сроки и гарантия по каждой услуге. Бесплатная диагностика.\n- H1: Цены на ремонт iPhone и Apple Watch\n\n## /privacy\n- Блок: `privacy.html`\n- Title: Политика конфиденциальности и согласие на обработку ПДн — Displex\n- Description: Политика ИП Гашков А. С. (Displex) в отношении обработки персональных данных посетителей сайта apple-displex.ru и согласие на обработку персональных данных.\n\n## 404\n- Блок: `404.html` (страница ошибки в настройках Creatium), noindex\n\n## robots.txt и sitemap.xml\n- Настройки сайта → Robots.txt и Sitemap.xml: вставить содержимое `robots.txt` и `sitemap.xml`\n\n")
     for slug, fn, t, d, h in rows:
         f.write(f"## {slug}\n- Блок: `{fn}`\n- Title: {t}\n- Description: {d}\n- H1: {h}\n\n")
 print("\n".join(sorted(os.listdir(OUT))))

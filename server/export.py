@@ -37,6 +37,55 @@ import config  # noqa: E402  (usedbot: BRANCHES, CONDITIONS)
 
 BRANCHES = [{"id": i, "name": n, "hint": h, "phone": t} for i, (n, h, t) in enumerate(config.BRANCHES)]
 
+# Миниатюры фото б/у для сайта: оригиналы с камеры (до 4284×5712, несколько МБ) показываются в карточке шириной ~300 px.
+# Делаем копию 900 px по длинной стороне, JPEG ~80%, один раз на файл; лишние копии удаляем. Нет Pillow — сайт берёт оригиналы.
+PUBLIC_DIR = USED_DIR / "public"
+THUMBS = OUT / "thumbs"
+THUMB_PX, THUMB_Q = 900, 80
+try:
+    from PIL import Image, ImageOps  # noqa: E402
+except Exception:  # pragma: no cover
+    Image = None
+_thumbs_used: set[str] = set()
+
+
+def thumb(url: str) -> str:
+    """URL оригинала displex.su/media/... → URL миниатюры (или исходный URL, если сделать нельзя)."""
+    if Image is None or not url.startswith(PUBLIC_URL + "/"):
+        return url
+    src = PUBLIC_DIR / urllib.parse.unquote(url[len(PUBLIC_URL) + 1:])
+    try:
+        st = src.stat()
+    except OSError:
+        return url
+    name = hashlib.sha1(f"{src}:{st.st_mtime_ns}".encode()).hexdigest()[:20] + ".jpg"
+    dst = THUMBS / name
+    _thumbs_used.add(name)
+    if not dst.exists():
+        try:
+            THUMBS.mkdir(parents=True, exist_ok=True)
+            with Image.open(src) as im:
+                im = ImageOps.exif_transpose(im).convert("RGB")
+                im.thumbnail((THUMB_PX, THUMB_PX), Image.LANCZOS)
+                tmp = dst.with_suffix(".tmp")
+                im.save(tmp, "JPEG", quality=THUMB_Q, optimize=True, progressive=True)
+                os.replace(tmp, dst)
+        except Exception as e:
+            print(f"миниатюра {src.name}: {type(e).__name__}: {e}", file=sys.stderr)
+            return url
+    return f"{PUBLIC_URL}/site/thumbs/{name}"
+
+
+def clean_thumbs() -> None:
+    if Image is None or not THUMBS.is_dir() or not _thumbs_used:
+        return
+    for f in THUMBS.glob("*.jpg"):
+        if f.name not in _thumbs_used:
+            try:
+                f.unlink()
+            except OSError:
+                pass
+
 
 def write_json(name: str, data: dict) -> None:
     """Атомарная запись: временный файл с точкой (Caddy его не отдаёт) → rename."""
@@ -99,10 +148,11 @@ def build_used() -> dict:
             "warranty": it.get("warranty", ""),
             "price": int(it["price"]),
             "branch": br if isinstance(br, int) else None,   # None = оба филиала
-            "photos": [u for u in rec["media"] if isinstance(u, str) and u.startswith(PUBLIC_URL + "/media/")][:8],
+            "photos": [thumb(u) for u in rec["media"] if isinstance(u, str) and u.startswith(PUBLIC_URL + "/media/")][:8],
             "ts": int(rec.get("ts") or 0),
         })
     items.sort(key=lambda x: -x["ts"])
+    clean_thumbs()
     return {"updated": int(time.time()), "branches": BRANCHES, "items": items}
 
 
