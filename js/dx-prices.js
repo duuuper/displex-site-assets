@@ -52,7 +52,8 @@
       var key = FLAT ? r.model : r.service;
       var first = key !== prev; prev = key;
       html += '<tr' + (first && i ? ' class="dx-p-group"' : "") + ">" +
-        '<td><div class="dx-svc">' + (first ? esc(FLAT ? r.model : r.service) : "") + '</div><div class="dx-var">' + esc(FLAT ? r.service + (r.variant ? " · " + r.variant : "") : r.variant || "") + "</div></td>" +
+        '<td><div class="dx-svc">' + (first ? esc(FLAT ? r.model : r.service) : "") + '</div><div class="dx-var">' + esc(FLAT ? r.service + (r.variant ? " · " + r.variant : "") : r.variant || "") + "</div>" +
+        (first && !FLAT && r.service === "Замена дисплея" && dispRows().length > 1 ? '<button class="dx-var-link dx-small" type="button" data-p-var>Чем отличаются варианты?</button>' : "") + "</td>" +
         "<td>" + esc(r.duration || "—") + "</td><td>" + esc(r.warranty || "—") + "</td>" +
         '<td class="dx-r"><span class="dx-price dx-price--md">' + esc(priceText(r)) + "</span></td>" +
         '<td class="dx-r"><button class="dx-btn dx-btn--secondary dx-btn--sm" type="button" data-p-book="' + i + '">Записаться</button></td></tr>';
@@ -62,6 +63,10 @@
     body._rows = rows;
     if (!SERIES.length) { try { history.replaceState(null, "", location.pathname + "?model=" + encodeURIComponent(current) + location.hash); } catch (e) {} }
   }
+  function dispRows() { return REP.filter(function (r) { return r.model === current && r.service === "Замена дисплея" && r.variant && !/^Доплата/.test(r.variant); }); }
+  root.addEventListener("click", function (e) {
+    if (e.target.closest && e.target.closest("[data-p-var]") && window.DX && window.DX.variants) window.DX.variants(current, dispRows());
+  });
   function ingest(d) {
     REP = (d && d.items) || []; if (!REP.length) return;
     models = []; REP.forEach(function (r) { if (models.indexOf(r.model) < 0) models.push(r.model); });

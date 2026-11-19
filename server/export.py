@@ -32,6 +32,7 @@ CHECK = os.environ.get("DX_EXPORT_CHECK") == "1"   # проверка новой
 
 REPAIR_SHEET_ID = "1KmS3Z3HDfsBMgsD8eL148tdp_gS2BE-d4OmBWZJdu00"
 REPAIR_SHEET = "Сайт_Ремонт"
+TRADEIN_SHEET = "Сайт_TradeIn"
 
 sys.path.insert(0, str(USED_DIR))
 import config  # noqa: E402  (usedbot: BRANCHES, CONDITIONS)
@@ -264,9 +265,41 @@ def build_repair() -> dict | None:
     return {"updated": int(time.time()), "items": items}
 
 
+TRADEIN_HEAD = ["модель", "память", "идеальное", "хорошее", "заметный износ", "дефекты"]
+TRADEIN_COND = ["Идеальное", "Хорошее", "Заметный износ", "Дефекты"]
+
+
+def build_tradein() -> dict | None:
+    """Лист «Сайт_TradeIn»: модель · память · максимальная сумма выкупа по 4 состояниям. Пустая ячейка — не оцениваем."""
+    url = (f"https://docs.google.com/spreadsheets/d/{REPAIR_SHEET_ID}/gviz/tq?tqx=out:csv&sheet="
+           + urllib.parse.quote(TRADEIN_SHEET))
+    with urllib.request.urlopen(url, timeout=20) as r:
+        text = r.read().decode("utf-8")
+    rows = list(csv.reader(io.StringIO(text)))
+    if len(rows) < 2:
+        return None
+    head = [c.strip().lower() for c in rows[0][:6]]
+    if head != TRADEIN_HEAD:
+        raise ValueError(f"лист «{TRADEIN_SHEET}» не найден или заголовки не совпадают: {rows[0][:6]}")
+    items = []
+    for r in rows[1:]:
+        r = (r + [""] * 6)[:6]
+        model, mem = r[0].strip(), r[1].strip()
+        if not model:
+            continue
+        prices = {}
+        for name, cell in zip(TRADEIN_COND, r[2:6]):
+            p = re.sub(r"\D", "", cell)
+            if p:
+                prices[name] = int(p)
+        if prices:
+            items.append({"model": model, "memory": mem, "prices": prices})
+    return {"updated": int(time.time()), "conditions": TRADEIN_COND, "items": items}
+
+
 def main() -> int:
     errors = 0
-    for name, fn in (("used.json", build_used), ("new.json", build_new), ("repair.json", build_repair)):
+    for name, fn in (("used.json", build_used), ("new.json", build_new), ("repair.json", build_repair), ("tradein.json", build_tradein)):
         try:
             data = fn()
             if data is None:
@@ -277,7 +310,7 @@ def main() -> int:
         except Exception as e:  # один источник упал — остальные пишем, старый файл остаётся
             errors += 1
             print(f"{name}: ОШИБКА {type(e).__name__}: {e}", file=sys.stderr)
-    return 1 if errors == 3 else 0
+    return 1 if errors == 4 else 0
 
 
 if __name__ == "__main__":

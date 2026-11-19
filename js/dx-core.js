@@ -168,7 +168,7 @@
     }).then(function (r) {
       if (timer) clearTimeout(timer);
       return r.json().catch(function () { return {}; }).then(function (j) {
-        if (r.ok && j.ok !== false) return { ok: true, id: j.id };
+        if (r.ok && j.ok !== false) { goal("lead_sent", { form: (data || {}).form || "" }); return { ok: true, id: j.id }; }
         if (r.status === 422) return { ok: false, error: j.error || "rejected" };   // ошибка в данных — повтор не поможет
         return sendBackup(data, u);                                               // ключ, сервер — запасной путь
       });
@@ -493,6 +493,155 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { initPickers(); });
   else initPickers();
 
+  /* ---------- Часы работы: «Открыто до 22:00», «Закроется через 40 мин» (время Екатеринбурга) ---------- */
+  var HOURS = [[600, 1320], [660, 1200]];                        // минуты от полуночи: Репина 10–22, Красный 11–20
+  function ekbNow() { var d = new Date(); return ((d.getUTCHours() + 5) % 24) * 60 + d.getUTCMinutes(); }
+  function hm(m) { return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"); }
+  function branchState(i, t) {
+    var o = HOURS[i][0], c = HOURS[i][1];
+    if (t >= o && t < c) { var l = c - t; return l <= 60 ? { k: "soon", open: true, text: "Закроется через " + l + " мин" } : { k: "open", open: true, text: "Открыто до " + hm(c) }; }
+    return { k: "closed", open: false, text: "Закрыто · откроется " + (t < o ? "сегодня" : "завтра") + " в " + hm(o) };
+  }
+  function stDot(k) { return '<i class="dx-st dx-st--' + k + '" aria-hidden="true"></i>'; }
+  function renderHours() {
+    var t = ekbNow(), st = HOURS.map(function (_, i) { return branchState(i, t); });
+    var open = st.filter(function (x) { return x.open; });
+    var sum = open.length
+      ? stDot(open.every(function (x) { return x.k === "soon"; }) ? "soon" : "open") + "Открыто до " + hm(Math.max.apply(null, HOURS.filter(function (_, i) { return st[i].open; }).map(function (h) { return h[1]; }))) + " · 2 филиала"
+      : stDot("closed") + "Закрыто · откроемся в " + hm(Math.min.apply(null, HOURS.map(function (h) { return h[0]; })));
+    document.querySelectorAll("[data-dx-hours]").forEach(function (el) {
+      var v = el.getAttribute("data-dx-hours");
+      el.innerHTML = v === "all" ? sum : st[+v] ? stDot(st[+v].k) + st[+v].text : "";
+    });
+    var rows = document.querySelector("[data-dx-call-rows]");
+    if (rows) {
+      var order = [0, 1].sort(function (a, b) { return st[b].open - st[a].open; });
+      rows.innerHTML = order.map(function (i) {
+        var p = PHONES[i];
+        return '<a class="dx-call-row' + (st[i].open ? "" : " is-closed") + '" href="tel:' + p[2] + '" data-dx-call="' + i + '"><span><b>' + p[0] + "</b><small>" + p[1] + "</small>" +
+          '<small class="dx-call-st">' + stDot(st[i].k) + st[i].text + '</small></span><span class="dx-num">' + p[3] + "</span></a>";
+      }).join("") + (open.length ? "" : '<button class="dx-btn dx-btn--primary dx-btn--block" type="button" data-dx-call-lead>Оставить заявку — перезвоним в ' + hm(HOURS[0][0]) + "</button>");
+    }
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderHours); else renderHours();
+  setInterval(renderHours, 60000);
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest ? e.target : e.target.parentElement, el;
+    if ((el = t.closest("[data-dx-topbar-toggle]"))) {
+      var bar = el.closest(".dx-topbar"), on = bar.getAttribute("data-open") !== "true";
+      bar.setAttribute("data-open", String(on)); el.setAttribute("aria-expanded", String(on)); return;
+    }
+    if ((el = t.closest("[data-dx-call]"))) { goal(el.getAttribute("data-dx-call") === "1" ? "call_krasny" : "call_repina"); return; }
+    if (t.closest("[data-dx-call-lead]")) { var m = document.getElementById("dx-call"); if (m) closeModal(m); lead("Ремонт", null); return; }
+    if ((el = t.closest('a[href^="tel:"]'))) goal("tel_click");
+  });
+
+  /* ---------- Цели Яндекс Метрики: номер счётчика берём с сайта (или window.DX_YM) ---------- */
+  function ymId() {
+    if (window.DX_YM) return window.DX_YM;
+    try { var c = window.Ya && Ya._metrika && Ya._metrika.getCounters && Ya._metrika.getCounters(); if (c && c.length) return c[0].id; } catch (e) {}
+    for (var k in window) { var m = /^yaCounter(\d+)$/.exec(k); if (m) return +m[1]; }
+    return null;
+  }
+  function goal(name, params) { try { var id = ymId(); if (id && typeof window.ym === "function") window.ym(id, "reachGoal", name, params || {}); } catch (e) {} }
+
+  /* ---------- Варианты дисплея: карточки «кому подходит · плюсы · минусы» ---------- */
+  // Тексты — черновик, правятся здесь. Ключ — фрагмент названия варианта из листа «Сайт_Ремонт».
+  var VAR_INFO = [
+    [/переклейк/i, "Переклейка стекла", "Разбито только стекло, изображение и сенсор работают",
+      ["Родная матрица: цвета, яркость и True Tone как были", "Дешевле замены на оригинальный модуль"], ["Не подходит, если есть полосы, пятна или не работает сенсор"]],
+    [/service pack/i, "Оригинал Service Pack", "Нужен новый дисплей заводского качества",
+      ["Новый оригинальный модуль Apple", "Цвета, яркость и частота как с завода"], ["Самый дорогой вариант"]],
+    [/снят/i, "Снятый оригинал", "Повреждена матрица, нужно оригинальное качество дешевле Service Pack",
+      ["Оригинальный дисплей, проверяем перед установкой", "Дешевле Service Pack"], ["Раньше стоял на другом iPhone"]],
+    [/oled/i, "Копия OLED", "Экран не работает, важна цена, но хочется OLED",
+      ["OLED: глубокий чёрный и высокий контраст", "Заметно дешевле оригинала"], ["Цвета и яркость немного отличаются от оригинала"]],
+    [/tft/i, "Копия TFT", "Нужен самый бюджетный ремонт",
+      ["Самая низкая цена"], ["ЖК-матрица: чёрный светится серым, батарея садится быстрее"]]
+  ];
+  var VAR_NOTE = [[/привязк/i, "С привязкой к телефону — без сообщения «Неизвестная деталь»"], [/120\s*Гц/i, "120 Гц — плавность как у оригинала"]];
+  function varInfo(name) { for (var i = 0; i < VAR_INFO.length; i++) if (VAR_INFO[i][0].test(name)) return VAR_INFO[i]; return [null, name, "", [], []]; }
+  function rubF(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " ₽"; }
+  function escH(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  var varCtx = null;
+  function variants(model, rows, picked) {
+    rows = (rows || []).filter(function (r) { return r.variant && !/^Доплата/.test(r.variant); });
+    if (!rows.length) return;
+    var m = document.getElementById("dx-var");
+    if (!m) {
+      m = document.createElement("div");
+      m.className = "dx-modal dx-var"; m.id = "dx-var"; m.setAttribute("role", "dialog"); m.setAttribute("aria-modal", "true");
+      m.setAttribute("aria-labelledby", "dx-var-h"); m.setAttribute("aria-hidden", "true"); m.setAttribute("data-open", "false");
+      m.innerHTML = '<div class="dx-modal-box"><button class="dx-modal-close" type="button" data-dx-close aria-label="Закрыть"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>' +
+        '<h2 class="dx-h3" id="dx-var-h">Варианты дисплея</h2><p class="dx-small dx-text-muted"><span data-dx-var-model></span><span class="dx-var-hint"> · листайте →</span></p><div class="dx-var-list" data-dx-var-list></div></div>';
+      var roots = document.querySelectorAll(".dx-root"); (roots[roots.length - 1] || document.body).appendChild(m);
+    }
+    varCtx = { model: model, rows: rows };
+    m.querySelector("[data-dx-var-model]").textContent = model;
+    m.querySelector("[data-dx-var-list]").innerHTML = rows.map(function (r, i) {
+      var inf = varInfo(r.variant), notes = VAR_NOTE.filter(function (n) { return n[0].test(r.variant); }).map(function (n) { return n[1]; });
+      var price = r.price == null ? (r.price_text || "после диагностики") : (/^от/i.test(r.price_text || "") ? "от " : "") + rubF(r.price);
+      return '<article class="dx-var-card' + (r.variant === picked ? " is-on" : "") + '">' +
+        '<div class="dx-var-top"><b>' + escH(inf[1]) + '</b><span class="dx-var-price">' + escH(price) + "</span></div>" +
+        (inf[1] !== r.variant ? '<div class="dx-tiny dx-text-muted">' + escH(r.variant) + "</div>" : "") +
+        (inf[2] ? '<p class="dx-small">' + escH(inf[2]) + "</p>" : "") +
+        "<ul>" + inf[3].concat(notes).map(function (x) { return '<li class="is-plus">' + escH(x) + "</li>"; }).join("") +
+        inf[4].map(function (x) { return '<li class="is-minus">' + escH(x) + "</li>"; }).join("") + "</ul>" +
+        '<p class="dx-tiny dx-text-muted">' + escH([r.warranty ? "Гарантия " + r.warranty : "", r.duration].filter(Boolean).join(" · ")) + "</p>" +
+        '<button class="dx-btn dx-btn--primary dx-btn--block" type="button" data-dx-var-pick="' + i + '">Записаться</button></article>';
+    }).join("");
+    openModal("dx-var");
+    var on = m.querySelector(".dx-var-card.is-on"), list = m.querySelector("[data-dx-var-list]");
+    list.scrollLeft = on ? on.offsetLeft - 16 : 0;
+    goal("display_variants", { model: model });
+  }
+  document.addEventListener("click", function (e) {
+    var el = e.target.closest && e.target.closest("[data-dx-var-pick]"); if (!el || !varCtx) return;
+    var r = varCtx.rows[+el.getAttribute("data-dx-var-pick")], m = document.getElementById("dx-var");
+    if (m) closeModal(m);
+    goal("display_variant_lead");
+    lead("Ремонт", varCtx.model + " — Замена дисплея · " + r.variant + (r.price != null ? " · " + rubF(r.price) : ""));
+  });
+
+  /* ---------- «Сообщить о поступлении» (б/у нет в наличии) ---------- */
+  function notifyHtml(what, mems, budgets) {
+    mems = mems && mems.length ? mems : ["128 ГБ", "256 ГБ", "512 ГБ"];
+    var chips = function (name, list) {
+      return '<div class="dx-opts" role="group" data-dx-notify-pick="' + name + '">' + list.concat(["не важно"]).map(function (v, i, a) {
+        return '<button class="dx-opt" type="button" aria-pressed="' + (i === a.length - 1) + '">' + escH(v) + "</button>"; }).join("") + "</div>";
+    };
+    var id = "dx-nt-" + Math.random().toString(36).slice(2, 7);
+    return '<form class="dx-notify" data-dx-notify="' + escH(what) + '" novalidate>' +
+      '<p class="dx-notify-h">Сообщить, когда появится б/у ' + escH(what) + "</p>" +
+      '<p class="dx-tiny dx-text-muted">Б/у появляются каждую неделю. Позвоним или напишем первым.</p>' +
+      '<span class="dx-label">Память</span>' + chips("mem", mems) +
+      (budgets && budgets.length ? '<span class="dx-label">Бюджет</span>' + chips("budget", budgets) : "") +
+      '<input class="dx-input" name="dx-nt-phone" type="tel" inputmode="tel" data-dx-phone placeholder="+7 (900) 000-00-00" autocomplete="tel" aria-label="Телефон">' +
+      '<label class="dx-check"><input type="checkbox" name="dx-nt-agree" id="' + id + '"><span>Даю <a class="dx-link" href="/privacy#consent">согласие на обработку персональных данных</a></span></label>' +
+      '<button class="dx-btn dx-btn--primary dx-btn--block" type="submit">Сообщите мне</button>' +
+      '<p class="dx-form-status" data-dx-notify-status role="status" hidden></p></form>';
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-dx-notify-pick] .dx-opt"); if (!b) return;
+    b.parentNode.querySelectorAll(".dx-opt").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+  });
+  document.addEventListener("submit", function (e) {
+    var f = e.target; if (!f.matches || !f.matches("form[data-dx-notify]")) return;
+    e.preventDefault();
+    var ph = f.elements["dx-nt-phone"], ag = f.elements["dx-nt-agree"], st = f.querySelector("[data-dx-notify-status]");
+    if (!validPhone(ph.value)) { ph.setAttribute("aria-invalid", "true"); ph.focus(); return; }
+    ph.removeAttribute("aria-invalid");
+    if (!ag.checked) { ag.focus(); return; }
+    var pick = function (n) { var x = f.querySelector('[data-dx-notify-pick="' + n + '"] [aria-pressed="true"]'); return x ? x.textContent : ""; };
+    var what = f.getAttribute("data-dx-notify"), btn = f.querySelector('button[type="submit"]'); btn.disabled = true;
+    sendLead({ form: "Сообщить о поступлении", phone: ph.value, device: what, service: "Ждёт поступления: б/у " + what,
+               comment: ["Память: " + pick("mem"), pick("budget") ? "Бюджет: " + pick("budget") : ""].filter(Boolean).join("; ") }).then(function (res) {
+      btn.disabled = false; st.hidden = false;
+      if (res.ok) { st.setAttribute("data-kind", "ok"); st.textContent = "Готово. Сообщим, как только появится."; goal("notify_lead"); f.querySelectorAll(".dx-opts, input, .dx-check, button").forEach(function (x) { x.hidden = true; }); }
+      else { st.setAttribute("data-kind", "err"); st.textContent = "Не удалось отправить. Позвоните +7 (922) 025-21-21."; }
+    });
+  });
+
   /* ---------- Скрипты страниц: версия задаётся только в шапке ---------- */
   // Блок страницы содержит только метку (data-dx-home / data-dx-catalog / data-dx-prices),
   // скрипт подгружаем из той же версии, что и ядро → для обновления меняется один блок шапки.
@@ -533,7 +682,7 @@
     call.setAttribute("aria-labelledby", "dx-call-h"); call.setAttribute("aria-hidden", "true"); call.setAttribute("data-open", "false");
     call.innerHTML = '<div class="dx-modal-box"><button class="dx-modal-close" type="button" data-dx-close aria-label="Закрыть"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>' +
       '<h2 class="dx-h3" id="dx-call-h">Позвонить в филиал</h2>' +
-      PHONES.map(function (p) { return '<a class="dx-call-row" href="tel:' + p[2] + '"><span><b>' + p[0] + '</b><small>' + p[1] + '</small></span><span class="dx-num">' + p[3] + "</span></a>"; }).join("") +
+      '<div class="dx-call-rows" data-dx-call-rows></div>' +
       '<p class="dx-tiny dx-text-muted">Или напишите в Telegram <a class="dx-link" href="https://t.me/displexpoint" target="_blank" rel="noopener">@displexpoint</a></p></div>';
     var pill = document.createElement("div");
     pill.className = "dx-pill"; pill.setAttribute("role", "group"); pill.setAttribute("aria-label", "Связаться");
@@ -555,8 +704,10 @@
         ticking = false;
       });
     }, { passive: true });
+    renderHours();
     document.addEventListener("click", function (e) {
-      if (e.target.closest && e.target.closest("[data-dx-pill-lead]")) lead(null, null);
+      if (e.target.closest && e.target.closest("[data-dx-pill-lead]")) { goal("pill_lead"); lead(null, null); }
+      if (e.target.closest && e.target.closest('.dx-pill [data-dx-open="dx-call"]')) goal("pill_call");
       if (e.target.closest && e.target.closest("[data-dx-cookie-ok]")) setTimeout(place, 0);
     });
     place(); setTimeout(place, 1200);
@@ -567,5 +718,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initPage); else initPage();
 
   window.DX = { applyTheme: applyTheme, openModal: openModal, closeModal: closeModal, formatPhone: formatPhone,
-                sendLead: sendLead, validPhone: validPhone, store: store, syncKind: syncKind, initPickers: initPickers, colorRu: colorRu, swap: swap, lead: lead };
+                sendLead: sendLead, validPhone: validPhone, store: store, syncKind: syncKind, initPickers: initPickers, colorRu: colorRu, swap: swap, lead: lead, goal: goal, variants: variants, notifyHtml: notifyHtml };
 })();

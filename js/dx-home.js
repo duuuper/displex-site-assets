@@ -40,6 +40,7 @@
     $("[data-calc-name]").textContent = r.service + (r.variant ? " · " + r.variant : "");
     var pe = $("[data-calc-price]"), pt = priceText(r);
     if (pe.textContent !== pt) { pe.textContent = pt; if (window.DX && window.DX.swap) window.DX.swap(pe); }
+    var cv = $("[data-calc-var]"); if (cv) cv.hidden = !(calc.service === "Замена дисплея" && rows.length > 1);
     $("[data-calc-meta]").innerHTML = [r.duration, r.warranty ? "гарантия " + r.warranty : ""].filter(Boolean).map(function (t) { return "<span>" + esc(t) + "</span>"; }).join("");
     out.hidden = false;
   }
@@ -89,7 +90,7 @@
   function ingestShop(fresh, used) {
     if (fresh && fresh.items) NEW = fresh.items;
     if (used && used.items) USED = used.items;
-    if (mw) mwBuy();
+    if (mw) { mwBuy(); renderTi(); }
     var grid = $("[data-home-shop]"); if (!grid) return;
     var items = (fresh && fresh.items) || [], picks = [];
     // новые: самый свежий iPhone (минимальная цена модели) + ещё одна категория
@@ -145,6 +146,7 @@
         (r.duration ? "<small>" + esc(r.duration) + "</small>" : "") + "<span>от " + rub(r.price) + "</span></button>";
     }).join("") || '<p class="dx-small dx-text-muted">Цену для этой модели назовём после бесплатной диагностики.</p>';
     var all = $("[data-mw-all]"); if (all) { all.textContent = "цены для " + MW.rm; all.href = "/calculator?model=" + encodeURIComponent(MW.rm); }
+    var vl = $("[data-mw-var]"); if (vl) vl.hidden = !(MW.rs === "Замена дисплея" && rowsFor(MW.rm, MW.rs).filter(function (r) { return r.variant && !/^Доплата/.test(r.variant); }).length > 1);
     var go = $('[data-mw-go="r"]'); if (go) go.textContent = MW.rs ? "Записаться · " + svcShort(MW.rs) : "Записаться на ремонт";
   }
   function buyKeys() {                           // iPhone по моделям (новые сверху) + остальные категории целиком
@@ -180,9 +182,57 @@
       else { link.textContent = "выбрать в каталоге"; link.href = (CAT_URL[cat] || "/catalog") + (MW.bm.indexOf("cat:") ? "?q=" + encodeURIComponent(MW.bm) : ""); }
     }
     MW.buy = { title: title, used: MW.bb === "used", price: MW.bb === "used" ? uMin : nMin };
+    var nt = $("[data-mw-notify]");
+    if (nt && window.DX && window.DX.notifyHtml) {
+      if (u.length) { nt.innerHTML = ""; nt.removeAttribute("data-for"); }
+      else if (nt.getAttribute("data-for") !== title) {
+        var mems = []; n.forEach(function (i) { if (i.memory && mems.indexOf(i.memory) < 0) mems.push(i.memory); });
+        var budgets = nMin ? [0.45, 0.6, 0.75].map(function (k) { return "до " + Math.round(nMin * k / 5000) * 5 + " тыс"; }) : [];
+        nt.innerHTML = window.DX.notifyHtml(title, mems, budgets); nt.setAttribute("data-for", title);
+      }
+    }
   }
   function plural(n, f) { var a = n % 100, b = n % 10; return a > 10 && a < 20 ? f[2] : b === 1 ? f[0] : b > 1 && b < 5 ? f[1] : f[2]; }
+
+  /* Trade-In: оценка по листу «Сайт_TradeIn» + доплата за выбранную модель */
+  var TI = [], TIS = { mem: "", cond: "Хорошее", want: "" };
+  var CONDS = [["Идеальное", "Без царапин, аккумулятор 90% и выше"], ["Хорошее", "Мелкие следы использования, всё работает"],
+               ["Заметный износ", "Царапины, потёртости, сколы корпуса; всё работает"], ["Дефекты", "Трещины, не работает Face ID, камера и т. п."]];
+  function tiRows(m) { m = String(m || "").trim().toLowerCase(); return TI.filter(function (x) { return x.model.toLowerCase() === m; }); }
+  function opt(v, on) { return '<button class="dx-opt" type="button" data-v="' + esc(v) + '" aria-pressed="' + on + '">' + esc(v) + "</button>"; }
+  function renderTi() {
+    var inp = $("#dx-mw-ti-model"); if (!inp) return;
+    var model = inp.value.trim(), rows = tiRows(model);
+    var mems = rows.length ? rows.map(function (r) { return r.memory; }) : ["64 ГБ", "128 ГБ", "256 ГБ", "512 ГБ", "1 ТБ"];
+    if (mems.indexOf(TIS.mem) < 0) TIS.mem = rows.length ? mems[0] : "128 ГБ";
+    $("[data-mw-mem]").innerHTML = mems.map(function (m) { return opt(m, m === TIS.mem); }).join("");
+    $("[data-mw-cond]").innerHTML = CONDS.map(function (c) { return opt(c[0], c[0] === TIS.cond); }).join("");
+    $("[data-mw-cond-note]").textContent = (CONDS.filter(function (c) { return c[0] === TIS.cond; })[0] || [])[1] || "";
+    var wants = buyKeys().filter(function (k) { return k[0].indexOf("cat:") < 0; }).slice(0, 4);
+    if (!wants.some(function (k) { return k[0] === TIS.want; }) && TIS.want !== "none") TIS.want = wants.length ? wants[0][0] : "none";
+    var wr = $("[data-mw-want]");
+    wr.innerHTML = wants.map(function (k) { return chip(k[0], k[1], k[0] === TIS.want); }).join("") + chip("none", "Только сдать", TIS.want === "none");
+    var row = rows.filter(function (r) { return r.memory === TIS.mem; })[0];
+    var price = row && row.prices ? row.prices[TIS.cond] : null;
+    var newMin = null;
+    if (TIS.want !== "none") { var ns = NEW.filter(function (i) { return i.model === TIS.want; }); if (ns.length) newMin = Math.min.apply(null, ns.map(function (i) { return i.price; })); }
+    var res = $("[data-mw-ti-res]"), html = "";
+    if (!model) html = '<span class="dx-small dx-text-muted">Выберите модель — покажем оценку' + (TIS.want !== "none" ? " и доплату" : "") + ".</span>";
+    else if (price == null) html = '<span class="dx-small">Эту модель оценим за 10 минут при проверке в филиале.</span>' +
+      (newMin != null ? '<div class="dx-row"><span>' + esc(TIS.want) + '</span><span>от ' + rub(newMin) + "</span></div>" : "");
+    else if (newMin != null) html = '<div class="dx-row"><span>' + esc(TIS.want) + ", новый</span><span>от " + rub(newMin) + "</span></div>" +
+      '<div class="dx-row"><span>Ваш ' + esc(model) + "</span><span>− до " + rub(price) + "</span></div>" +
+      '<span class="dx-small dx-text-muted" style="margin-top:4px">Доплата</span><b>от ' + rub(Math.max(0, newMin - price)) + "</b>";
+    else html = '<span class="dx-small dx-text-muted">Предварительная оценка</span><b>до ' + rub(price) + '</b><span class="dx-tiny dx-text-muted">Точная сумма — после проверки за 10 минут</span>';
+    res.innerHTML = html;
+    MW.ti = { model: model, mem: TIS.mem, cond: TIS.cond, price: price, want: TIS.want, newMin: newMin };
+    var go = $('[data-mw-go="t"]'); if (go) go.textContent = price != null ? "Зафиксировать оценку" : "Оценить мой телефон";
+  }
+  function ingestTradeIn(d) { if (d && d.items) TI = d.items; renderTi(); }
   if (mw) {
+    var tiInp = $("#dx-mw-ti-model");
+    if (tiInp) { tiInp.addEventListener("input", renderTi); tiInp.addEventListener("change", renderTi); }
+    renderTi();
     mw.addEventListener("click", function (e) {
       var t = e.target, el;
       if ((el = t.closest("[data-mw-tab]"))) {
@@ -192,25 +242,34 @@
           var on = p.getAttribute("data-mw-pane") === MW.tab; p.hidden = !on;
           if (on && window.DX && window.DX.swap) window.DX.swap(p, "dx-fade");
         });
-        if (MW.tab === "b") mwBuy(); else if (MW.tab === "r") centerChip($("[data-mw-rm]"));
+        if (MW.tab === "b") mwBuy(); else if (MW.tab === "r") centerChip($("[data-mw-rm]")); else renderTi();
+        if (window.DX && window.DX.goal) window.DX.goal("mw_tab_" + MW.tab);
         return;
       }
       if ((el = t.closest("[data-mw-rm] [data-v]"))) { MW.rm = el.getAttribute("data-v"); mwRepairModels(); mwServices(); return; }
       if ((el = t.closest("[data-mw-rs] [data-v]"))) { MW.rs = el.getAttribute("data-v"); mwServices(); return; }
       if ((el = t.closest("[data-mw-bm] [data-v]"))) { MW.bm = el.getAttribute("data-v"); mwBuy(); return; }
       if ((el = t.closest("[data-mw-bb] [data-v]"))) { MW.bb = el.getAttribute("data-v"); mwBuy(); return; }
-      if ((el = t.closest("[data-mw-mem] .dx-opt"))) { el.parentNode.querySelectorAll(".dx-opt").forEach(function (b) { b.setAttribute("aria-pressed", String(b === el)); }); return; }
+      if ((el = t.closest("[data-mw-mem] .dx-opt"))) { TIS.mem = el.getAttribute("data-v"); renderTi(); return; }
+      if ((el = t.closest("[data-mw-cond] .dx-opt"))) { TIS.cond = el.getAttribute("data-v"); renderTi(); return; }
+      if ((el = t.closest("[data-mw-want] [data-v]"))) { TIS.want = el.getAttribute("data-v"); renderTi(); return; }
+      if (t.closest("[data-mw-var]")) { window.DX && window.DX.variants && window.DX.variants(MW.rm, rowsFor(MW.rm, "Замена дисплея")); return; }
       if (!(el = t.closest("[data-mw-go]")) || !window.DX || !window.DX.lead) return;
       var k = el.getAttribute("data-mw-go");
       if (k === "r") {
         var r = $('[data-mw-rs] [aria-pressed="true"] span');
+        window.DX.goal("mw_repair_lead");
         window.DX.lead("Ремонт", MW.rm + (MW.rs ? " — " + MW.rs + (r ? " · " + r.textContent : "") : ""));
       } else if (k === "b") {
         var b = MW.buy || {};
+        window.DX.goal("mw_buy_lead");
         window.DX.lead("Покупка", (b.used ? "Б/у " : "Новый ") + (b.title || "") + (b.price != null ? " · от " + rub(b.price) : "") + " — бронь на 24 часа");
       } else {
-        var m = $("#dx-mw-ti-model").value.trim(), mem = $('[data-mw-mem] [aria-pressed="true"]');
-        window.DX.lead("Trade-In", "Оценка: " + (m || "модель уточню") + (mem ? ", " + mem.textContent : ""));
+        var ti = MW.ti || {};
+        window.DX.goal("mw_tradein_lead");
+        window.DX.lead("Trade-In", "Сдаю: " + (ti.model || "модель уточню") + ", " + ti.mem + ", " + ti.cond.toLowerCase() +
+          (ti.price != null ? " (оценка до " + rub(ti.price) + ")" : "") +
+          (ti.want && ti.want !== "none" ? " → хочу " + ti.want + (ti.price != null && ti.newMin != null ? " (доплата от " + rub(Math.max(0, ti.newMin - ti.price)) + ")" : "") : ""));
       }
     });
   }
@@ -219,19 +278,22 @@
   function get(name) { return fetch(API + name, { cache: "no-cache" }).then(function (r) { if (!r.ok) throw 0; return r.json(); }); }
   var cached = null;
   try { cached = JSON.parse(localStorage.getItem(CACHE) || "null"); } catch (e) {}
-  if (cached) { ingestRepair(cached.repair); ingestShop(cached.fresh, cached.used); }
+  if (cached) { ingestRepair(cached.repair); ingestShop(cached.fresh, cached.used); ingestTradeIn(cached.tradein); }
   if (!cached || Date.now() - cached.t > 60000) {
-    Promise.all([get("repair.json").catch(function () { return null; }), get("new.json").catch(function () { return null; }), get("used.json").catch(function () { return null; })])
+    Promise.all([get("repair.json").catch(function () { return null; }), get("new.json").catch(function () { return null; }), get("used.json").catch(function () { return null; }), get("tradein.json").catch(function () { return null; })])
       .then(function (r) {
         if (r[0]) ingestRepair(r[0]);
         if (r[1] || r[2]) ingestShop(r[1], r[2]);
-        try { localStorage.setItem(CACHE, JSON.stringify({ t: Date.now(), repair: r[0], fresh: r[1], used: r[2] })); } catch (e) {}
+        ingestTradeIn(r[3]);
+        try { localStorage.setItem(CACHE, JSON.stringify({ t: Date.now(), repair: r[0], fresh: r[1], used: r[2], tradein: r[3] })); } catch (e) {}
       });
   }
 
   /* ---------- События ---------- */
   mSel.addEventListener("change", function () { calc.model = mSel.value; calc.variant = ""; fillServices(); renderCalc(); });
   sSel.addEventListener("change", function () { calc.service = sSel.value; calc.variant = ""; renderCalc(); });
+  var calcVar = $("[data-calc-var]");
+  if (calcVar) calcVar.addEventListener("click", function () { window.DX && window.DX.variants && window.DX.variants(calc.model, rowsFor(calc.model, "Замена дисплея"), calc.variant); });
   vBox.addEventListener("click", function (e) { var b = e.target.closest("[data-calc-v]"); if (b) { calc.variant = b.getAttribute("data-calc-v"); renderCalc(); } });
 
   var form = $("[data-lead-form]");

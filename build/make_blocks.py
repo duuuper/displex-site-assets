@@ -22,10 +22,11 @@ HEADER = f"""<!-- Displex · ШАПКА (блок «HTML код», первый 
 <script src="{CDN}/js/dx-core.min.js" defer></script>
 <div class="dx-root dx-bleed">
 <header class="dx-header">
-  <div class="dx-topbar"><div class="dx-container dx-topbar-in">
+  <div class="dx-topbar" data-open="false"><div class="dx-container dx-topbar-in">
+    <button class="dx-topbar-status" type="button" data-dx-topbar-toggle aria-expanded="false"><span data-dx-hours="all">Ежедневно · 2 филиала</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
     <div class="dx-topbar-branches">
-      <span class="dx-branch"><span class="dx-branch-name">Репина, 94</span><span class="dx-branch-hint">ТРЦ «Радуга Парк» · 10:00–22:00</span><a href="tel:+79220252121">+7 922 025-21-21</a></span>
-      <span class="dx-branch"><span class="dx-branch-name">Красный пер., 12</span><span class="dx-branch-hint">м. Динамо · 11:00–20:00</span><a href="tel:+79809303620">+7 980 930-36-20</a></span>
+      <span class="dx-branch"><span class="dx-branch-name">Репина, 94</span><span class="dx-branch-hint">ТРЦ «Радуга Парк» · 10:00–22:00</span><span class="dx-branch-st" data-dx-hours="0"></span><a href="tel:+79220252121">+7 922 025-21-21</a></span>
+      <span class="dx-branch"><span class="dx-branch-name">Красный пер., 12</span><span class="dx-branch-hint">м. Динамо · 11:00–20:00</span><span class="dx-branch-st" data-dx-hours="1"></span><a href="tel:+79809303620">+7 980 930-36-20</a></span>
     </div>
     <span class="dx-topbar-note">Диагностика 0 ₽ при любом исходе</span>
   </div></div>
@@ -277,21 +278,27 @@ def home_page():
     <div class="dx-mw-pane" data-mw-pane="r" role="tabpanel">
       <div class="dx-mw-models" role="group" aria-label="Модель iPhone" data-mw-rm></div>
       <div class="dx-mw-tiles" role="group" aria-label="Услуга" data-mw-rs><div class="dx-skel"></div><div class="dx-skel"></div><div class="dx-skel"></div><div class="dx-skel"></div></div>
+      <button class="dx-var-link" type="button" data-mw-var hidden>Чем отличаются варианты дисплея?</button>
       <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="button" data-mw-go="r">Записаться на ремонт</button>
       <p class="dx-tiny dx-text-muted dx-mw-note">Все услуги и запчасти — <a class="dx-link" href="/calculator" data-mw-all>цены для вашей модели</a></p>
     </div>
     <div class="dx-mw-pane" data-mw-pane="b" role="tabpanel" hidden>
       <div class="dx-mw-models" role="group" aria-label="Что купить" data-mw-bm></div>
       <div class="dx-mw-tiles dx-mw-tiles--buy" role="group" aria-label="Новый или б/у" data-mw-bb></div>
+      <div data-mw-notify></div>
       <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="button" data-mw-go="b">Забронировать на 24 часа</button>
       <p class="dx-tiny dx-text-muted dx-mw-note">Цвет и память уточним при брони · <a class="dx-link" href="/catalog" data-mw-cat>весь каталог</a></p>
     </div>
     <div class="dx-mw-pane" data-mw-pane="t" role="tabpanel" hidden>
       <div class="dx-mw-ti">
         <p class="dx-mw-ti-h">Сдайте старый — доплатите разницу</p>
-        <p class="dx-small dx-text-muted">Оценим по состоянию и зачтём сумму в покупку нового или б/у.</p>
-        <div class="dx-field"><label class="dx-label" for="dx-mw-ti-model">Ваша модель</label><input class="dx-input" id="dx-mw-ti-model" name="dx-ti-model" type="text" placeholder="iPhone 13 Pro" autocomplete="off"></div>
-        <div class="dx-opts" role="group" aria-label="Память" data-mw-mem><button class="dx-opt" type="button" aria-pressed="false">64 ГБ</button><button class="dx-opt" type="button" aria-pressed="true">128 ГБ</button><button class="dx-opt" type="button" aria-pressed="false">256 ГБ</button><button class="dx-opt" type="button" aria-pressed="false">512 ГБ</button><button class="dx-opt" type="button" aria-pressed="false">1 ТБ</button></div>
+        <div class="dx-field"><label class="dx-label" for="dx-mw-ti-model">Сдаю</label><input class="dx-input" id="dx-mw-ti-model" name="dx-ti-model" type="text" placeholder="Например, iPhone 13 Pro" autocomplete="off"></div>
+        <div class="dx-opts" role="group" aria-label="Память" data-mw-mem></div>
+        <div class="dx-opts" role="group" aria-label="Состояние" data-mw-cond></div>
+        <p class="dx-mw-cond-note" data-mw-cond-note></p>
+        <span class="dx-label">Хочу взять</span>
+        <div class="dx-mw-models" role="group" aria-label="Что хотите взять" data-mw-want></div>
+        <div class="dx-mw-ti-res" data-mw-ti-res></div>
         <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="button" data-mw-go="t">Оценить мой телефон</button>
       </div>
     </div>
@@ -302,6 +309,7 @@ def home_page():
       <div class="dx-field"><label class="dx-label" for="dx-calc-model">Модель</label><select class="dx-select" id="dx-calc-model" data-calc-model><option>iPhone 13</option></select></div>
       <div class="dx-field"><label class="dx-label" for="dx-calc-service">Что нужно сделать</label><select class="dx-select" id="dx-calc-service" data-calc-service><option>Замена дисплея</option></select></div>
       <div class="dx-opts" data-calc-variants role="group" aria-label="Вариант запчасти" hidden></div>
+      <button class="dx-var-link" type="button" data-calc-var hidden>Чем отличаются варианты?</button>
       <div class="dx-calc-result" data-calc-result hidden>
         <div><div class="dx-small dx-text-muted" data-calc-name></div><div class="dx-price dx-price--xl" data-calc-price></div></div>
         <div class="dx-calc-meta" data-calc-meta></div>
@@ -359,8 +367,8 @@ def home_page():
 <section class="dx-section dx-section--tint" id="booking"><div class="dx-container dx-two">
   <div class="dx-stack" style="gap:18px">
     <h2 class="dx-h2">Два филиала</h2>
-    <div class="dx-branch-card"><div class="dx-h3">ул. Репина, 94 · ТРЦ «Радуга Парк»</div><div class="dx-text-muted">Каждый день 10:00–22:00</div><a class="dx-link dx-num" href="tel:+79220252121">+7 (922) 025-21-21</a><a class="dx-link dx-small" href="https://yandex.ru/maps/org/apple_service/80327936020/" target="_blank" rel="noopener">Открыть в Яндекс Картах</a></div>
-    <div class="dx-branch-card"><div class="dx-h3">Красный пер., 12 · м. Динамо</div><div class="dx-text-muted">Каждый день 11:00–20:00</div><a class="dx-link dx-num" href="tel:+79809303620">+7 (980) 930-36-20</a><a class="dx-link dx-small" href="https://yandex.ru/maps/org/displex/41724692284/" target="_blank" rel="noopener">Открыть в Яндекс Картах</a></div>
+    <div class="dx-branch-card"><div class="dx-h3">ул. Репина, 94 · ТРЦ «Радуга Парк»</div><div class="dx-text-muted">Каждый день 10:00–22:00</div><div class="dx-branch-status" data-dx-hours="0"></div><a class="dx-link dx-num" href="tel:+79220252121">+7 (922) 025-21-21</a><a class="dx-link dx-small" href="https://yandex.ru/maps/org/apple_service/80327936020/" target="_blank" rel="noopener">Открыть в Яндекс Картах</a></div>
+    <div class="dx-branch-card"><div class="dx-h3">Красный пер., 12 · м. Динамо</div><div class="dx-text-muted">Каждый день 11:00–20:00</div><div class="dx-branch-status" data-dx-hours="1"></div><a class="dx-link dx-num" href="tel:+79809303620">+7 (980) 930-36-20</a><a class="dx-link dx-small" href="https://yandex.ru/maps/org/displex/41724692284/" target="_blank" rel="noopener">Открыть в Яндекс Картах</a></div>
   </div>
   <form class="dx-panel-dark dx-stack" data-lead-form novalidate>
     <h2 class="dx-h3">Записаться или забронировать</h2>

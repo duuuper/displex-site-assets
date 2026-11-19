@@ -262,8 +262,9 @@
     var html, n;
     if (PAGE === "used") { var list = filteredUsed(); n = list.length; html = list.map(cardUsed).join(""); }
     else { var gs = filteredGroups(); n = gs.length; html = gs.map(cardNew).join(""); }
+    var notify = PAGE === "used" && !n && window.DX && window.DX.notifyHtml ? window.DX.notifyHtml(state.q || (state.f ? state.f : "устройство")) : "";
     grid.innerHTML = n ? html :
-      '<div class="dx-empty" style="grid-column:1/-1"><p class="dx-h3">Ничего не нашли</p><p class="dx-text-muted">Измените запрос или напишите нам: привезём нужную модель под заказ.</p>' +
+      '<div class="dx-empty" style="grid-column:1/-1"><p class="dx-h3">Ничего не нашли</p><p class="dx-text-muted">Измените запрос или напишите нам: привезём нужную модель под заказ.</p>' + notify +
       '<button class="dx-btn dx-btn--secondary dx-btn--sm" type="button" data-reset>Сбросить фильтры</button></div>';
     if (countEl) {
       var upd = DATA.updated ? new Date(DATA.updated * 1000) : null;
@@ -353,6 +354,7 @@
     if (!html) return;
     pd.querySelector("[data-dx-sheetbody]").innerHTML = html;
     window.DX && window.DX.openModal("dx-pd");
+    window.DX && window.DX.goal && window.DX.goal("catalog_sheet_open", { kind: key ? "new" : "used" });
     pd.querySelector(".dx-modal-box").scrollTop = 0;
   }
 
@@ -402,7 +404,7 @@
       if (res.ok) {
         form.hidden = true; st.setAttribute("data-kind", "ok");
         st.textContent = "Готово. Отложим товар на 24 часа, менеджер перезвонит в течение 15 минут в рабочее время.";
-        try { if (window.ym && window.DX_YM) window.ym(window.DX_YM, "reachGoal", "catalog_booking"); } catch (e) {}
+        if (window.DX && window.DX.goal) window.DX.goal("catalog_booking", { kind: booking.kind });
       } else {
         st.setAttribute("data-kind", "err");
         st.textContent = "Не удалось отправить. Позвоните +7 (922) 025-21-21 или напишите в Telegram @displexpoint.";
