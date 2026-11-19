@@ -1,4 +1,4 @@
-<!-- Displex · ГЛАВНАЯ · адрес / · 788cb6b
+<!-- Displex · ГЛАВНАЯ · адрес / · 278fb34
      Настройки страницы в Creatium:
        Title:       Ремонт iPhone и техника Apple в Екатеринбурге — Displex
        Description: Ремонт iPhone, iPad, Mac и Apple Watch в Екатеринбурге: бесплатная диагностика, цена до начала работ, гарантия до 1 года. Новые и б/у iPhone, Trade-In. Репина 94 и Красный пер. 12.
@@ -8,12 +8,45 @@
 <section class="dx-container dx-hero">
   <h1 class="dx-h1" style="max-width:980px">Ремонт и техника Apple. Цена — до начала работ.</h1>
   <p class="dx-lead">Два филиала в Екатеринбурге, бесплатная диагностика, письменная гарантия до 1 года.</p>
+  <div class="dx-mw" data-mw>
+    <div class="dx-mw-seg" role="tablist" aria-label="Что нужно">
+      <button type="button" role="tab" aria-selected="true" data-mw-tab="r">Ремонт</button><button type="button" role="tab" aria-selected="false" data-mw-tab="b">Купить</button><button type="button" role="tab" aria-selected="false" data-mw-tab="t">Trade-In</button>
+    </div>
+    <div class="dx-mw-pane" data-mw-pane="r" role="tabpanel">
+      <div class="dx-mw-models" role="group" aria-label="Модель iPhone" data-mw-rm></div>
+      <div class="dx-mw-tiles" role="group" aria-label="Услуга" data-mw-rs><div class="dx-skel"></div><div class="dx-skel"></div><div class="dx-skel"></div><div class="dx-skel"></div></div>
+      <button class="dx-var-link" type="button" data-mw-var hidden>Чем отличаются варианты дисплея?</button>
+      <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="button" data-mw-go="r">Записаться на ремонт</button>
+      <p class="dx-tiny dx-text-muted dx-mw-note">Все услуги и запчасти — <a class="dx-link" href="/calculator" data-mw-all>цены для вашей модели</a></p>
+    </div>
+    <div class="dx-mw-pane" data-mw-pane="b" role="tabpanel" hidden>
+      <div class="dx-mw-models" role="group" aria-label="Что купить" data-mw-bm></div>
+      <div class="dx-mw-tiles dx-mw-tiles--buy" role="group" aria-label="Новый или б/у" data-mw-bb></div>
+      <div data-mw-notify></div>
+      <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="button" data-mw-go="b">Забронировать на 24 часа</button>
+      <p class="dx-tiny dx-text-muted dx-mw-note">Цвет и память уточним при брони · <a class="dx-link" href="/catalog" data-mw-cat>весь каталог</a></p>
+    </div>
+    <div class="dx-mw-pane" data-mw-pane="t" role="tabpanel" hidden>
+      <div class="dx-mw-ti">
+        <p class="dx-mw-ti-h">Сдайте старый — доплатите разницу</p>
+        <div class="dx-field"><label class="dx-label" for="dx-mw-ti-model">Сдаю</label><input class="dx-input" id="dx-mw-ti-model" name="dx-ti-model" type="text" placeholder="Например, iPhone 13 Pro" autocomplete="off"></div>
+        <div class="dx-opts" role="group" aria-label="Память" data-mw-mem></div>
+        <div class="dx-opts" role="group" aria-label="Состояние" data-mw-cond></div>
+        <p class="dx-mw-cond-note" data-mw-cond-note></p>
+        <span class="dx-label">Хочу взять</span>
+        <div class="dx-mw-models" role="group" aria-label="Что хотите взять" data-mw-want></div>
+        <div class="dx-mw-ti-res" data-mw-ti-res></div>
+        <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="button" data-mw-go="t">Оценить мой телефон</button>
+      </div>
+    </div>
+  </div>
   <div class="dx-hero-grid">
     <form class="dx-calc" onsubmit="return false" aria-labelledby="dx-calc-h">
       <h2 class="dx-h3" id="dx-calc-h">Узнайте цену ремонта</h2>
       <div class="dx-field"><label class="dx-label" for="dx-calc-model">Модель</label><select class="dx-select" id="dx-calc-model" data-calc-model><option>iPhone 13</option></select></div>
       <div class="dx-field"><label class="dx-label" for="dx-calc-service">Что нужно сделать</label><select class="dx-select" id="dx-calc-service" data-calc-service><option>Замена дисплея</option></select></div>
       <div class="dx-opts" data-calc-variants role="group" aria-label="Вариант запчасти" hidden></div>
+      <button class="dx-var-link" type="button" data-calc-var hidden>Чем отличаются варианты?</button>
       <div class="dx-calc-result" data-calc-result hidden>
         <div><div class="dx-small dx-text-muted" data-calc-name></div><div class="dx-price dx-price--xl" data-calc-price></div></div>
         <div class="dx-calc-meta" data-calc-meta></div>
@@ -71,8 +104,8 @@
 <section class="dx-section dx-section--tint" id="booking"><div class="dx-container dx-two">
   <div class="dx-stack" style="gap:18px">
     <h2 class="dx-h2">Два филиала</h2>
-    <div class="dx-branch-card"><div class="dx-h3">ул. Репина, 94 · ТРЦ «Радуга Парк»</div><div class="dx-text-muted">Каждый день 10:00–22:00</div><a class="dx-link dx-num" href="tel:+79220252121">+7 (922) 025-21-21</a><a class="dx-link dx-small" href="https://yandex.ru/maps/org/apple_service/80327936020/" target="_blank" rel="noopener">Открыть в Яндекс Картах</a></div>
-    <div class="dx-branch-card"><div class="dx-h3">Красный пер., 12 · м. Динамо</div><div class="dx-text-muted">Каждый день 11:00–20:00</div><a class="dx-link dx-num" href="tel:+79809303620">+7 (980) 930-36-20</a><a class="dx-link dx-small" href="https://yandex.ru/maps/org/displex/41724692284/" target="_blank" rel="noopener">Открыть в Яндекс Картах</a></div>
+    <div class="dx-branch-card"><div class="dx-h3">ул. Репина, 94 · ТРЦ «Радуга Парк»</div><div class="dx-text-muted">Каждый день 10:00–22:00</div><div class="dx-branch-status" data-dx-hours="0"></div><a class="dx-link dx-num" href="tel:+79220252121">+7 (922) 025-21-21</a><a class="dx-link dx-small" href="https://yandex.ru/maps/org/apple_service/80327936020/" target="_blank" rel="noopener">Открыть в Яндекс Картах</a></div>
+    <div class="dx-branch-card"><div class="dx-h3">Красный пер., 12 · м. Динамо</div><div class="dx-text-muted">Каждый день 11:00–20:00</div><div class="dx-branch-status" data-dx-hours="1"></div><a class="dx-link dx-num" href="tel:+79809303620">+7 (980) 930-36-20</a><a class="dx-link dx-small" href="https://yandex.ru/maps/org/displex/41724692284/" target="_blank" rel="noopener">Открыть в Яндекс Картах</a></div>
   </div>
   <form class="dx-panel-dark dx-stack" data-lead-form novalidate>
     <h2 class="dx-h3">Записаться или забронировать</h2>
@@ -106,4 +139,3 @@
 
 </div>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Сколько стоит диагностика?", "acceptedAnswer": {"@type": "Answer", "text": "Диагностика бесплатная при любом исходе: даже если вы решите не ремонтировать устройство."}}, {"@type": "Question", "name": "Сколько времени занимает ремонт?", "acceptedAnswer": {"@type": "Answer", "text": "Замена аккумулятора — 20–40 минут, замена дисплея — 40–60 минут, корпус и заднее стекло — 1–2 часа. Ремонт платы — от 1 дня. Точный срок мастер назовёт после диагностики."}}, {"@type": "Question", "name": "Какая гарантия на ремонт?", "acceptedAnswer": {"@type": "Answer", "text": "На оригинальные запчасти — 1 год, на копии — 6 месяцев. Гарантию выдаём письменно."}}, {"@type": "Question", "name": "Чем оригинал отличается от копии?", "acceptedAnswer": {"@type": "Answer", "text": "Оригинальный дисплей — родная матрица Apple: переклейка стекла, снятый оригинал или Service Pack. Копии OLED и TFT дешевле, но уступают по яркости, цветам и расходу батареи. Мастер покажет разницу вживую."}}, {"@type": "Question", "name": "Можно ли сдать старый телефон в зачёт?", "acceptedAnswer": {"@type": "Answer", "text": "Да, по Trade-In: оцениваем при осмотре, разницу доплачиваете за новый или б/у iPhone."}}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "ElectronicsStore", "name": "Displex — Репина, 94", "url": "https://apple-displex.ru/", "telephone": "+7 922 025-21-21", "openingHours": ["Mo-Su 10:00-22:00"], "priceRange": "₽₽", "address": {"@type": "PostalAddress", "streetAddress": "ул. Репина, 94, ТРЦ «Радуга Парк», 1 этаж", "addressLocality": "Екатеринбург", "addressCountry": "RU"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "ElectronicsStore", "name": "Displex — Красный переулок, 12", "url": "https://apple-displex.ru/", "telephone": "+7 980 930-36-20", "openingHours": ["Mo-Su 11:00-20:00"], "priceRange": "₽₽", "address": {"@type": "PostalAddress", "streetAddress": "Красный переулок, 12", "addressLocality": "Екатеринбург", "addressCountry": "RU"}}</script>
-<script src="https://cdn.jsdelivr.net/gh/duuuper/displex-site-assets@788cb6b/js/dx-home.min.js" defer></script>

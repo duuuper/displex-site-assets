@@ -1,4 +1,4 @@
-# Displex — блоки для Creatium (788cb6b)
+# Displex — блоки для Creatium (278fb34)
 
 На каждой странице 3 блока «HTML код» по порядку: `00_header.html` → блок страницы → `99_footer.html`.
 
