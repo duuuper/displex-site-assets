@@ -31,6 +31,7 @@
     "bronze": "#8d6e5a", "burgundy": "#6b2433", "red": "#c8102e", "graphite": "#55565a", "slate": "#5d6168", "indigo": "#4a5a8a", "blush": "#f1cfd0"
   };
   function hex(c) { return HEX[String(c || "").toLowerCase()] || "#c7c7cc"; }
+  function ru(c) { return window.DX && window.DX.colorRu ? window.DX.colorRu(c) : c || ""; }   // названия цветов по-русски (словарь в dx-core)
 
   /* ---------- утилиты ---------- */
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -147,7 +148,7 @@
     var c = visibleCat();
     return groups.filter(function (g) {
       return (!c || g.cat === c) && (!state.f || g.family === state.f) &&
-        match([g.model, g.net].concat(g.items.map(function (i) { return [i.color, i.memory, i.sim].join(" "); })).join(" "));
+        match([g.model, g.net].concat(g.items.map(function (i) { return [i.color, ru(i.color), i.memory, i.sim].join(" "); })).join(" "));
     }).sort(sorter);
   }
   function filteredUsed() {
@@ -161,7 +162,7 @@
   function cardNew(g) {
     var v = sel[g.key] || g.pick;
     var media = v.photo
-      ? '<img src="' + esc(v.photo) + '" alt="' + esc(g.title + ", " + v.color) + '" loading="lazy" decoding="async" width="400" height="300" data-dx-fallback="' + g.cat + '">'
+      ? '<img src="' + esc(v.photo) + '" alt="' + esc(g.title + ", " + ru(v.color)) + '" loading="lazy" decoding="async" width="400" height="300" data-dx-fallback="' + g.cat + '">'
       : silhouette(g.cat);
     var ALWAYS = { color: 1, memory: 1, size: 1 };   // эти строки есть в каждой карточке, даже при одном варианте
     var dims = g.dims.map(function (d) {
@@ -172,12 +173,12 @@
         var off = !variantFor(g, choice);
         if (d.key === "color") {
           return '<button class="dx-swatch" type="button" data-g="' + esc(g.key) + '" data-d="color" data-v="' + esc(val) + '" aria-pressed="' + on + '"' +
-            (off ? ' data-off="true"' : "") + ' aria-label="' + esc(val) + '" title="' + esc(val) + '" style="background:' + hex(val) + '"></button>';
+            (off ? ' data-off="true"' : "") + ' aria-label="' + esc(ru(val)) + '" title="' + esc(ru(val)) + '" style="background:' + hex(val) + '"></button>';
         }
         return '<button class="dx-opt" type="button" data-g="' + esc(g.key) + '" data-d="' + d.key + '" data-v="' + esc(val) + '" aria-pressed="' + on + '"' +
           (off ? ' data-off="true"' : "") + ">" + esc(val) + "</button>";
       }).join("");
-      return '<div class="dx-dim"><span class="dx-dim-label">' + DIM_LABEL[d.key] + (d.key === "color" ? ": " + esc(v.color) : "") + '</span><div class="' +
+      return '<div class="dx-dim"><span class="dx-dim-label">' + DIM_LABEL[d.key] + (d.key === "color" ? ": " + esc(ru(v.color)) : "") + '</span><div class="' +
         (d.key === "color" ? "dx-swatches" : "dx-opts") + '" role="group" aria-label="' + DIM_LABEL[d.key] + '">' + html + "</div></div>";
     }).join("");
     var single = g.dims.filter(function (d) { return d.vals.length === 1 && !ALWAYS[d.key]; }).map(function (d) { return d.vals[0]; }).join(" · ");
@@ -341,7 +342,7 @@
       var g = groups.filter(function (x) { return x.key === ref; })[0]; if (!g) return;
       var v = sel[g.key] || g.pick;
       title = g.title; cat = g.cat; price = v.price;
-      meta = [v.color, v.memory, v.sim, v.strap ? "ремешок " + v.strap : ""].filter(Boolean).join(" · ");
+      meta = [ru(v.color), v.memory, v.sim, v.strap ? "ремешок " + v.strap : ""].filter(Boolean).join(" · ");
     } else {
       var u = usedList.filter(function (x) { return x.id === ref; })[0]; if (!u) return;
       title = u.model + (u.memory ? " · " + u.memory : ""); cat = u.cat; price = u.price;

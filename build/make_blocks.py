@@ -7,14 +7,18 @@ OUT = sys.argv[2] if len(sys.argv) > 2 else "out"
 MAP_REPINA = "https://yandex.ru/maps/org/apple_service/80327936020/"
 CDN = f"https://cdn.jsdelivr.net/gh/duuuper/displex-site-assets@{VER}"
 os.makedirs(OUT, exist_ok=True)
+# Ключ CRM (право только «создание заявок») не храним в репозитории: DX_CRM_KEY=... python3 build/make_blocks.py <версия>
+_CRM_KEY = os.environ.get("DX_CRM_KEY", "")
+CRM_LINE = (f'<script>window.DX_CRM={{url:"https://crm.apple-displex.ru/api/v1/leads",key:"{_CRM_KEY}"}}</script>\n' if _CRM_KEY else "")
+if not _CRM_KEY: print("ВНИМАНИЕ: DX_CRM_KEY не задан — заявки пойдут запасным путём (Apps Script)", file=sys.stderr)
 E = html.escape
 
 HEADER = f"""<!-- Displex · ШАПКА (блок «HTML код», первый на каждой странице) · {VER} -->
 <script>try{{var t=localStorage.getItem('dx-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-dx-theme',t)}}catch(e){{}}</script>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="preconnect" href="https://displex.su" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@600;700&display=swap">
-<link rel="stylesheet" href="{CDN}/css/dx-core.min.css">
+<link rel="preload" href="{CDN}/fonts/unbounded-cyrillic-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{CDN}/fonts/golos-text-cyrillic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+{CRM_LINE}<link rel="stylesheet" href="{CDN}/css/dx-core.min.css">
 <script src="{CDN}/js/dx-core.min.js" defer></script>
 <div class="dx-root dx-bleed">
 <header class="dx-header">
@@ -48,6 +52,15 @@ HEADER = f"""<!-- Displex · ШАПКА (блок «HTML код», первый 
 </div>
 """
 
+_RL = [("iphone-7-8", "iPhone 7 и 8"), ("iphone-x-xs-xr", "iPhone X, XS, XR"), ("iphone-11", "iPhone 11"), ("iphone-12", "iPhone 12"),
+       ("iphone-13", "iPhone 13"), ("iphone-14", "iPhone 14"), ("iphone-15", "iPhone 15"), ("iphone-16", "iPhone 16"),
+       ("iphone-17", "iPhone 17"), ("apple-watch", "Apple Watch")]
+FOOTER_RL = ("""  <nav class="dx-container dx-rl-wrap" aria-label="Ремонт по моделям">
+    <h4>Ремонт по моделям</h4>
+    <div class="dx-rl-grid">
+""" + "".join(f'      <a class="dx-offer dx-offer--dark dx-rl" href="/remont/{sl}"><span><span class="dx-rl-k">Ремонт</span><span class="dx-rl-t">{nm}</span></span><span class="dx-rl-arrow" aria-hidden="true">→</span></a>\n' for sl, nm in _RL) + """    </div>
+    <p class="dx-small" style="margin-top:14px"><a class="dx-link" href="/calculator">Все цены на ремонт iPhone и Apple Watch →</a></p>
+  </nav>""")
 FOOTER = f"""<!-- Displex · ПОДВАЛ (блок «HTML код», последний на каждой странице) · {VER} -->
 <div class="dx-root dx-bleed">
 <footer class="dx-footer" id="branches">
@@ -57,6 +70,7 @@ FOOTER = f"""<!-- Displex · ПОДВАЛ (блок «HTML код», после�
     <div><h4>Красный пер., 12</h4><ul class="dx-small"><li>Центр, м. Динамо</li><li>Ежедневно 11:00–20:00</li><li><a href="tel:+79809303620" class="dx-num">+7 (980) 930-36-20</a></li></ul></div>
     <div><h4>Связаться</h4><ul class="dx-small"><li><a href="https://t.me/displexpoint">Telegram</a></li><li><a href="https://wa.me/79220252121">WhatsApp</a></li><li><a href="https://yandex.ru/maps/org/displex/41724692284/">Яндекс Карты · 5,0</a></li></ul></div>
   </div>
+{FOOTER_RL}
   <div class="dx-container dx-footer-legal">
     <span>© 2026 Displex · ИП Гашков Александр Сергеевич · ИНН 665915129490 · ОГРНИП 322665800209156</span>
     <span><a class="dx-link" href="/privacy">Политика конфиденциальности</a> · <a class="dx-link" href="/privacy#consent">Согласие на обработку ПДн</a></span>
@@ -245,7 +259,7 @@ def home_page():
             ("Замена камеры", "Замена камеры", "от 1 800 ₽", "40–60 мин", "—"),
             ("Ремонт платы (пайка)", "Ремонт платы (пайка)", "от 3 500 ₽", "от 1 дня", "—"),
             ("Переклейка стекла Apple Watch", "watch", "от 2 500 ₽", "4–5 ч", "—")]
-    trs = "".join(f'<tr><td class="dx-svc">{E(n)}</td><td>{E(d)}</td><td>{E(w)}</td><td class="dx-r"><span class="dx-price dx-price--md" data-from="{E(k)}">{E(f)}</span></td></tr>' for n, k, f, d, w in rows)
+    trs = "".join(f'<tr><td class="dx-svc">{E(n)}</td><td>{E(d)}</td><td{' class="dx-dash"' if w == "—" else ' data-l="· гарантия"'}>{E(w)}</td><td class="dx-r"><span class="dx-price dx-price--md" data-from="{E(k)}">{E(f)}</span></td></tr>' for n, k, f, d, w in rows)
     skel = '<div class="dx-skel"></div>' * 4
     return f"""<!-- Displex · ГЛАВНАЯ · адрес / · {VER}
      Настройки страницы в Creatium:
@@ -292,7 +306,7 @@ def home_page():
 
 <section class="dx-section dx-section--tint" id="prices"><div class="dx-container">
   <div class="dx-head-split"><div class="dx-stack" style="gap:6px"><h2 class="dx-h2">Цены на ремонт</h2><p class="dx-text-muted">Окончательная стоимость — после бесплатной диагностики.</p></div><a class="dx-link" href="/calculator">Цена для вашей модели →</a></div>
-  <div class="dx-table-wrap"><table class="dx-table">
+  <div class="dx-table-wrap"><table class="dx-table dx-table--stack">
     <thead><tr><th scope="col">Услуга</th><th scope="col">Срок</th><th scope="col">Гарантия</th><th scope="col" class="dx-r">Цена</th></tr></thead>
     <tbody>{trs}</tbody>
   </table></div>
@@ -308,7 +322,13 @@ def home_page():
       <a class="dx-btn dx-btn--secondary" href="https://yandex.ru/maps/org/displex/41724692284/reviews/" target="_blank" rel="noopener">Отзывы · Красный пер., 12</a>
     </div>
   </div>
-  <div class="dx-reviews" data-reviews><p class="dx-text-muted" style="padding:20px">Загружаем отзывы с Яндекс Карт…</p></div>
+  <div>
+    <div class="dx-chips dx-reviews-tabs" role="group" aria-label="Отзывы филиала" data-reviews-tabs>
+      <button class="dx-chip" type="button" data-org="80327936020" aria-pressed="true">Репина, 94</button>
+      <button class="dx-chip" type="button" data-org="41724692284" aria-pressed="false">Красный пер., 12</button>
+    </div>
+    <div class="dx-reviews" data-reviews><p class="dx-text-muted" style="padding:20px">Загружаем отзывы с Яндекс Карт…</p></div>
+  </div>
 </div></section>
 
 <section class="dx-section dx-section--tint" id="booking"><div class="dx-container dx-two">
@@ -413,7 +433,7 @@ def series_page(sr):
   <p class="dx-lead">Цены на все модели серии, сроки и гарантия. Диагностика бесплатная, цену называем до начала работ.</p>
 </section>
 <div class="dx-container">
-  <div class="dx-table-wrap" style="margin-bottom:28px"><table class="dx-table">
+  <div class="dx-table-wrap" style="margin-bottom:28px"><table class="dx-table dx-table--stack">
     <thead><tr><th scope="col">Услуга</th><th scope="col">Срок</th><th scope="col" class="dx-r">Цена</th></tr></thead>
     <tbody>{rows}</tbody></table></div>
   <div class="dx-chips" role="group" aria-label="Модель" data-p-chips style="padding-block:8px 16px"></div>

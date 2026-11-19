@@ -1,9 +1,29 @@
 /* ==========================================================================
    Displex · дизайн-система V3 «Цена с порога» · dx-core.css
-   Шрифты: Unbounded (заголовки, цены) + Golos Text (текст)
+   Шрифты: Unbounded (заголовки, цены) + Golos Text (текст) — файлы в /fonts, грузятся отсюда же через jsDelivr
    Тема: авто / светлая / тёмная. Сайт ставит html[data-dx-theme], превью — ещё и html[data-theme].
    Все классы с префиксом dx-, всё внутри .dx-root — чтобы стили Creatium не пересекались.
    ========================================================================== */
+
+/* ---------- Шрифты (свои копии, OFL; раньше — Google Fonts) ---------- */
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/golos-text-cyrillic-400-normal.woff2") format("woff2"); unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/golos-text-latin-ext-400-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/golos-text-latin-400-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/golos-text-cyrillic-500-normal.woff2") format("woff2"); unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/golos-text-latin-ext-500-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/golos-text-latin-500-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/golos-text-cyrillic-600-normal.woff2") format("woff2"); unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/golos-text-latin-ext-600-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/golos-text-latin-600-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/golos-text-cyrillic-700-normal.woff2") format("woff2"); unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/golos-text-latin-ext-700-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/golos-text-latin-700-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Unbounded"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/unbounded-cyrillic-600-normal.woff2") format("woff2"); unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116; }
+@font-face { font-family: "Unbounded"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/unbounded-latin-ext-600-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Unbounded"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/unbounded-latin-600-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Unbounded"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/unbounded-cyrillic-700-normal.woff2") format("woff2"); unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116; }
+@font-face { font-family: "Unbounded"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/unbounded-latin-ext-700-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Unbounded"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/unbounded-latin-700-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
 
 /* ---------- Токены: светлая тема (база) ---------- */
 :root {
@@ -592,3 +612,146 @@ html body .dx-root .dx-footer a.dx-link:hover { color: var(--dx-accent-text) !im
   html.dx-mp-lock, html.dx-mp-lock body { overflow: hidden; }
 }
 @media (prefers-reduced-motion: reduce) { .dx-mp-pop, .dx-mp-scrim, .dx-mp-chev, .dx-mp-tick { transition: none !important; } }
+
+/* ==========================================================================
+   Движение: сдержанные анимации (только transform и opacity).
+   Отключаются целиком, если в системе включено «Уменьшение движения».
+   ========================================================================== */
+:root { --dx-ease: cubic-bezier(.2,.7,.2,1); --dx-ease-io: cubic-bezier(.4,0,.2,1); }
+
+/* Шапка: при прокрутке — полупрозрачная с размытием */
+.dx-header { transition: background-color .3s, box-shadow .3s; }
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .dx-header.is-scrolled { background: color-mix(in srgb, var(--dx-bg) 80%, transparent); -webkit-backdrop-filter: saturate(180%) blur(16px); backdrop-filter: saturate(180%) blur(16px); }
+}
+.dx-nav a { transition: background-color .2s, color .2s; }
+.dx-theme button { transition: background-color .25s var(--dx-ease), color .25s, box-shadow .25s; }
+
+/* Плавная смена темы (класс ставит dx-core на 0,4 с) */
+html.dx-theme-anim .dx-root, html.dx-theme-anim .dx-root * {
+  transition: background-color .35s var(--dx-ease-io), color .35s var(--dx-ease-io), border-color .35s var(--dx-ease-io), fill .35s, stroke .35s !important;
+}
+
+/* Появление блоков при прокрутке (класс dx-rv ставит dx-core только тем, что ниже первого экрана) */
+.dx-rv { opacity: 0; transform: translateY(16px); transition: opacity .6s var(--dx-ease), transform .6s var(--dx-ease); transition-delay: calc(var(--dx-i, 0) * 60ms); }
+.dx-rv.is-in { opacity: 1; transform: none; }
+
+/* Карточки, предложения, кнопки */
+.dx-card, .dx-offer, .dx-branch-card { transition: transform .3s var(--dx-ease), box-shadow .3s var(--dx-ease), border-color .3s; }
+.dx-card-media img { transition: transform .5s var(--dx-ease), opacity .2s; }
+@media (hover: hover) {
+  .dx-card:hover, a.dx-offer:hover { transform: translateY(-3px); box-shadow: var(--dx-shadow); }
+  .dx-card:hover .dx-card-media img { transform: scale(1.03); }
+  .dx-btn--primary:hover { box-shadow: 0 6px 18px rgba(0,113,227,.28); }
+  .dx-offer .dx-price--lg[aria-hidden] { transition: transform .3s var(--dx-ease); }
+  a.dx-offer:hover .dx-price--lg[aria-hidden] { transform: translateX(4px); }
+}
+.dx-btn { transition: background-color .15s, border-color .15s, color .15s, transform .1s, box-shadow .25s; }
+.dx-btn:active, .dx-chip:active, .dx-opt:active { transform: scale(.97); }
+.dx-chip, .dx-opt, .dx-swatch { transition: background-color .15s, border-color .15s, color .15s, transform .1s, box-shadow .2s; }
+.dx-table tbody tr { transition: background-color .15s; }
+@media (hover: hover) { .dx-table tbody tr:hover { background: var(--dx-surface); } }
+
+/* Новая цена «всплывает» (калькулятор, таблица цен) */
+@keyframes dx-swap { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.dx-swap { animation: dx-swap .3s var(--dx-ease); }
+@keyframes dx-fade { from { opacity: 0; } to { opacity: 1; } }
+.dx-fade { animation: dx-fade .25s var(--dx-ease-io); }
+
+/* «В наличии» — мягко пульсирующая точка */
+@keyframes dx-blink { 50% { opacity: .35; } }
+.dx-badge--stock::before { animation: dx-blink 2.4s ease-in-out infinite; }
+
+/* Скелетон загрузки — блик вместо мигания */
+.dx-skel { position: relative; overflow: hidden; animation: none; }
+.dx-skel::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--dx-elevated) 65%, transparent), transparent); animation: dx-shimmer 1.4s infinite; }
+@keyframes dx-shimmer { to { transform: translateX(100%); } }
+
+/* Частые вопросы: «+» поворачивается, ответ раскрывается (высоту анимирует dx-core) */
+.dx-faq summary::-webkit-details-marker { display: none; }
+.dx-faq summary::after { content: "+"; font-size: 20px; line-height: 1; transition: transform .3s var(--dx-ease); }
+.dx-faq details[open] summary::after { content: "+"; transform: rotate(45deg); }
+.dx-faq details { overflow: hidden; }
+
+/* Окна: появление вместо резкого показа */
+.dx-modal { display: flex; visibility: hidden; opacity: 0; transition: opacity .25s var(--dx-ease-io), visibility 0s .25s; }
+.dx-modal[data-open="true"] { visibility: visible; opacity: 1; transition: opacity .25s var(--dx-ease-io), visibility 0s; }
+.dx-modal-box { transform: translateY(12px) scale(.98); transition: transform .3s var(--dx-ease); }
+.dx-modal[data-open="true"] .dx-modal-box { transform: none; }
+@media (max-width: 560px) { .dx-modal-box { transform: translateY(100%); transition: transform .35s var(--dx-ease); } }
+.dx-modal-close { transition: background-color .15s, transform .2s var(--dx-ease); }
+.dx-modal-close:hover { background: var(--dx-surface-2); transform: rotate(90deg); }
+
+/* Мобильное меню выезжает */
+@media (max-width: 900px) {
+  .dx-menu[data-open="true"] { animation: dx-menu-in .28s var(--dx-ease); }
+  @keyframes dx-menu-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+}
+
+/* Cookie-баннер выезжает снизу */
+.dx-cookie:not([hidden]) .dx-cookie-box { animation: dx-cookie-in .4s var(--dx-ease) .6s both; }
+@keyframes dx-cookie-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .dx-rv { opacity: 1 !important; transform: none !important; }
+  .dx-skel::after, .dx-badge--stock::before, .dx-swap, .dx-fade, .dx-cookie-box { animation: none !important; }
+  .dx-modal, .dx-modal-box, .dx-header { transition: none !important; }
+}
+
+/* ==========================================================================
+   Правки по аудиту 19.11: мобильная версия, сетки, тёмная тема
+   ========================================================================== */
+/* Верхняя полоса не переносится на ноутбуках */
+@media (max-width: 1180px) { .dx-topbar-note { display: none; } }
+
+/* Витрина на главной: 4 в ряд, 2+2 на планшете, 1 на телефоне */
+[data-home-shop].dx-cat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1100px) { [data-home-shop].dx-cat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { [data-home-shop].dx-cat-grid { grid-template-columns: 1fr; } }
+
+/* Цифры доверия на телефоне — сеткой 2×2 */
+@media (max-width: 560px) { .dx-stats { grid-template-columns: 1fr 1fr; gap: 20px 16px; } .dx-stat-value { font-size: 24px; } }
+
+/* Таблица цен на телефоне — карточками без прокрутки вбок */
+@media (max-width: 640px) {
+  .dx-table--stack { min-width: 0; }
+  .dx-table--stack thead { display: none; }
+  .dx-table--stack, .dx-table--stack tbody, .dx-table--stack tr, .dx-table--stack td { display: block; width: 100%; }
+  .dx-table--stack tr { display: grid; grid-template-columns: max-content max-content 1fr auto; column-gap: 6px; row-gap: 2px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--dx-line); }
+  .dx-table--stack tr:last-child { border-bottom: 0; }
+  .dx-table--stack td { padding: 0; border: 0; grid-row: 2; font-size: 13px; color: var(--dx-muted); }
+  .dx-table--stack td:first-child { grid-row: 1; grid-column: 1 / 4; font-size: 15px; color: var(--dx-ink); }
+  .dx-table--stack td:last-child { grid-row: 1 / span 2; grid-column: 4; text-align: right; padding-left: 12px; }
+  .dx-table--stack td.dx-dash { display: none; }
+  .dx-table--stack td[data-l]::before { content: attr(data-l) " "; }
+}
+
+/* Пальцем удобно попадать: ссылки в подвале, шапке, хлебных крошках — не меньше 44 px по высоте */
+@media (pointer: coarse) {
+  .dx-footer li a, .dx-topbar a, .dx-crumbs a, .dx-branch-card .dx-link, .dx-footer-legal a { display: inline-flex; align-items: center; min-height: 44px; }
+  .dx-footer ul { gap: 0; }
+}
+
+/* Тёмная тема: картинки новых товаров на светлом фоне — приглушаем */
+:root[data-dx-theme="dark"] .dx-card-media:not(.dx-card-media--photo) img { filter: brightness(.86) contrast(1.04); border-radius: var(--dx-r-sm); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-dx-theme="light"]) .dx-card-media:not(.dx-card-media--photo) img { filter: brightness(.86) contrast(1.04); border-radius: var(--dx-r-sm); }
+}
+
+/* Отзывы: вкладки по филиалам */
+.dx-reviews-tabs { margin-bottom: 12px; }
+.dx-reviews iframe { animation: dx-fade .3s var(--dx-ease-io); }
+
+/* Подвал: «Ремонт по моделям» (раньше стили были внутри блока подвала) */
+.dx-rl-wrap { padding-block: 8px 32px; }
+.dx-rl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.dx-footer .dx-rl { padding: 16px 18px; gap: 12px; border-radius: var(--dx-r-lg); text-decoration: none; }
+.dx-footer .dx-rl.dx-offer--dark { border-color: var(--dx-band-line); }
+.dx-rl-k { display: block; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; opacity: .65; margin-bottom: 2px; }
+.dx-rl-t { display: block; font-weight: 700; font-size: 16px; line-height: 1.25; }
+.dx-rl-arrow { font-size: 20px; font-weight: 700; flex: none; transition: transform .3s var(--dx-ease); }
+@media (hover: hover) { .dx-footer .dx-rl:hover .dx-rl-arrow { transform: translateX(4px); } }
+html body .dx-root .dx-footer a.dx-offer--dark.dx-rl, html body .dx-root .dx-footer a.dx-offer--dark.dx-rl:hover,
+html body #cr-page .dx-root .dx-footer a.dx-offer--dark.dx-rl, html body #cr-page .dx-root .dx-footer a.dx-offer--dark.dx-rl:hover,
+html body .cr-page .dx-root .dx-footer a.dx-offer--dark.dx-rl, html body .cr-page .dx-root .dx-footer a.dx-offer--dark.dx-rl:hover { color: var(--dx-band-ink) !important; }
+@media (max-width: 520px) { .dx-rl-grid { grid-template-columns: 1fr 1fr; gap: 8px; } .dx-footer .dx-rl { padding: 12px 14px; } .dx-rl-t { font-size: 14px; } .dx-rl-arrow { font-size: 16px; } }

@@ -57,6 +57,7 @@
         '<td class="dx-r"><button class="dx-btn dx-btn--secondary dx-btn--sm" type="button" data-p-book="' + i + '">Записаться</button></td></tr>';
     });
     body.innerHTML = html;
+    if (window.DX && window.DX.swap) window.DX.swap(body, "dx-fade");
     body._rows = rows;
     if (!SERIES.length) { try { history.replaceState(null, "", location.pathname + "?model=" + encodeURIComponent(current) + location.hash); } catch (e) {} }
   }

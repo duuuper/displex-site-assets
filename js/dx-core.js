@@ -214,6 +214,85 @@
     if (t.matches && t.matches('input[type="radio"][name$="-kind"]')) syncKind(t.form || t.closest("form"));
   });
 
+  /* ---------- Движение: появление блоков, шапка, тема, FAQ ---------- */
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // «Новое значение всплывает»: DX.swap(el) — для цены в калькуляторе, таблиц и т. п.
+  function swap(el, cls) { if (!el || reduce) return; cls = cls || "dx-swap"; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+
+  var RV_SEL = [".dx-section .dx-h2", ".dx-head-split", ".dx-card", ".dx-offer", ".dx-stats > div", ".dx-table-wrap", ".dx-branch-card",
+                ".dx-panel-dark", ".dx-faq", ".dx-seo > p", ".dx-reviews", ".dx-rating", ".dx-rl-grid > a", ".dx-footer-grid > div", ".dx-calc", ".dx-skel"].join(",");
+  var rvIO = !reduce && "IntersectionObserver" in window ? new IntersectionObserver(function (es) {
+    es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("is-in"); rvIO.unobserve(e.target); } });
+  }, { rootMargin: "0px 0px -6% 0px", threshold: 0.08 }) : null;
+  function reveal(scope, initial) {
+    if (!rvIO) return;
+    var list = [];
+    if (scope.matches && scope.matches(RV_SEL)) list.push(scope);
+    if (scope.querySelectorAll) list = list.concat([].slice.call(scope.querySelectorAll(RV_SEL)));
+    var vh = window.innerHeight || 800;
+    list.forEach(function (el) {
+      if (el.classList.contains("dx-rv") || !el.closest(".dx-root") || el.closest(".dx-modal, .dx-mp-pop, .dx-hero-top")) return;
+      if (el.parentElement && el.parentElement.closest(".dx-rv")) return;              // родитель уже появляется — не дублируем
+      if (initial && el.getBoundingClientRect().top < vh * 0.92) return;               // первый экран показываем сразу
+      var sib = el.parentElement ? [].indexOf.call(el.parentElement.children, el) : 0;
+      el.style.setProperty("--dx-i", Math.min(sib, 6));
+      el.classList.add("dx-rv"); rvIO.observe(el);
+    });
+  }
+  function initMotion() {
+    reveal(document.body, true);
+    if (rvIO && window.MutationObserver) {                                            // карточки каталога и витрины приходят позже
+      var queue = [], busy = false;
+      new MutationObserver(function (ms) {
+        ms.forEach(function (m) { [].forEach.call(m.addedNodes, function (n) { if (n.nodeType === 1) queue.push(n); }); });
+        if (!busy && queue.length) { busy = true; requestAnimationFrame(function () { var q = queue; queue = []; busy = false; q.forEach(function (n) { if (n.isConnected) reveal(n, false); }); }); }
+      }).observe(document.body, { childList: true, subtree: true });
+    }
+    var hdr = document.querySelector(".dx-header");
+    if (hdr) {
+      var onScroll = function () { hdr.classList.toggle("is-scrolled", (window.scrollY || window.pageYOffset) > 8); };
+      window.addEventListener("scroll", onScroll, { passive: true }); onScroll();
+    }
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initMotion); else initMotion();
+
+  // Плавная смена темы: на время переключения включаем переходы цветов
+  document.addEventListener("click", function (e) {
+    if (reduce || !e.target.closest || !e.target.closest("[data-dx-theme-set]")) return;
+    root.classList.add("dx-theme-anim"); clearTimeout(root._dxT);
+    root._dxT = setTimeout(function () { root.classList.remove("dx-theme-anim"); }, 420);
+  }, true);
+
+  // Частые вопросы (<details>): плавное раскрытие и закрытие
+  document.addEventListener("click", function (e) {
+    var s = e.target.closest && e.target.closest(".dx-faq summary");
+    if (!s || reduce || !s.parentElement.animate) return;
+    var d = s.parentElement; e.preventDefault();
+    if (d._dxAnim) d._dxAnim.cancel();
+    var from = d.offsetHeight;
+    if (d.open) {
+      var to = s.offsetHeight + parseFloat(getComputedStyle(d).paddingTop) + parseFloat(getComputedStyle(d).paddingBottom);
+      d._dxAnim = d.animate({ height: [from + "px", to + "px"] }, { duration: 260, easing: "cubic-bezier(.4,0,.2,1)" });
+      d._dxAnim.onfinish = function () { d.open = false; d._dxAnim = null; };
+    } else {
+      d.open = true; var end = d.offsetHeight;
+      d._dxAnim = d.animate({ height: [from + "px", end + "px"] }, { duration: 300, easing: "cubic-bezier(.2,.7,.2,1)" });
+      d._dxAnim.onfinish = function () { d._dxAnim = null; };
+    }
+  });
+
+  /* Названия цветов для посетителя — по-русски, как на карточках-картинках. В данных и выборе остаются английские */
+  var COLOR_RU = {
+    "black": "Чёрный", "jet black": "Чёрный оникс", "space black": "Космический чёрный", "midnight": "Тёмная ночь", "space gray": "Серый космос",
+    "white": "Белый", "cloud white": "Облачно-белый", "starlight": "Сияющая звезда", "silver": "Серебристый", "natural": "Натуральный",
+    "blue": "Синий", "deep blue": "Глубокий синий", "mist blue": "Туманно-голубой", "sky blue": "Небесно-голубой", "glacier": "Ледниковый",
+    "ultramarine": "Ультрамарин", "teal": "Бирюзовый", "green": "Зелёный", "sage": "Шалфейный", "pink": "Розовый",
+    "rose gold": "Розовое золото", "lavender": "Лавандовый", "purple": "Фиолетовый", "yellow": "Жёлтый", "citrus": "Цитрусовый",
+    "orange": "Оранжевый", "cosmic orange": "Космический оранжевый", "gold": "Золотой", "light gold": "Светло-золотой", "desert": "Пустынный",
+    "bronze": "Бронзовый", "burgundy": "Бордовый", "red": "Красный", "graphite": "Графитовый", "slate": "Сланцевый", "indigo": "Индиго", "blush": "Румяный"
+  };
+  function colorRu(c) { return COLOR_RU[String(c || "").toLowerCase()] || c || ""; }
+
   /* ---------- Выбор модели: список с группами по сериям и поиском ----------
      Подключается сам к полям выбора модели. Родной <select> остаётся в разметке (скрыт): его заполняют
      и читают другие скрипты, а сюда мы только пишем value и шлём change. Для поля Trade-In (<input>)
@@ -414,5 +493,5 @@
   else initPickers();
 
   window.DX = { applyTheme: applyTheme, openModal: openModal, closeModal: closeModal, formatPhone: formatPhone,
-                sendLead: sendLead, validPhone: validPhone, store: store, syncKind: syncKind, initPickers: initPickers };
+                sendLead: sendLead, validPhone: validPhone, store: store, syncKind: syncKind, initPickers: initPickers, colorRu: colorRu, swap: swap };
 })();

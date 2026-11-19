@@ -37,7 +37,8 @@
     vBox.hidden = rows.length < 2;
     var r = rows.filter(function (x) { return x.variant === calc.variant; })[0];
     $("[data-calc-name]").textContent = r.service + (r.variant ? " · " + r.variant : "");
-    $("[data-calc-price]").textContent = priceText(r);
+    var pe = $("[data-calc-price]"), pt = priceText(r);
+    if (pe.textContent !== pt) { pe.textContent = pt; if (window.DX && window.DX.swap) window.DX.swap(pe); }
     $("[data-calc-meta]").innerHTML = [r.duration, r.warranty ? "гарантия " + r.warranty : ""].filter(Boolean).map(function (t) { return "<span>" + esc(t) + "</span>"; }).join("");
     out.hidden = false;
   }
@@ -74,7 +75,7 @@
   function card(it, used) {
     var img = used ? (it.photos || [])[0] : it.photo;
     var href = used ? "/catalog/used?cat=" + it.cat : (CAT_URL[it.cat] || "/catalog");
-    var meta = used ? [it.color, it.battery ? "АКБ " + it.battery : "", it.condition].filter(Boolean).join(" · ") : [it.memory, it.color].filter(Boolean).join(" · ");
+    var meta = used ? [it.color, it.battery ? "АКБ " + it.battery : "", it.condition].filter(Boolean).join(" · ") : [it.memory, window.DX && window.DX.colorRu ? window.DX.colorRu(it.color) : it.color].filter(Boolean).join(" · ");
     return '<a class="dx-card dx-pcard" href="' + href + '">' +
       '<div class="dx-card-media' + (used ? " dx-card-media--photo" : "") + '">' + (img ? '<img src="' + esc(img) + '" alt="' + esc(it.model) + '" loading="lazy" decoding="async" width="400" height="300">' : SIL) + "</div>" +
       '<div class="dx-chips" style="gap:6px">' + (used ? '<span class="dx-badge dx-badge--used">Б/у</span>' : '<span class="dx-badge dx-badge--stock">В наличии</span><span class="dx-badge dx-badge--new">Новый</span>') + "</div>" +
@@ -156,10 +157,20 @@
 
   root.addEventListener("error", function (e) { var t = e.target; if (t.tagName === "IMG" && t.closest("[data-home-shop]")) t.outerHTML = SIL; }, true);
 
-  /* Виджет отзывов Яндекса — загружаем, когда блок близко к экрану */
-  var rv = $("[data-reviews]");
+  /* Виджет отзывов Яндекса — вкладки по филиалам; грузим, когда блок близко к экрану */
+  var rv = $("[data-reviews]"), tabs = $("[data-reviews-tabs]");
   if (rv) {
-    var load = function () { if (rv.dataset.loaded) return; rv.dataset.loaded = "1"; rv.innerHTML = '<iframe src="https://yandex.ru/maps-reviews-widget/41724692284?comments" title="Отзывы о Displex на Яндекс Картах" loading="lazy" style="width:100%;height:100%;border:0;border-radius:inherit"></iframe>'; };
+    var ORG_DEFAULT = "41724692284", seen = false;
+    var show = function (org) {
+      rv.innerHTML = '<iframe src="https://yandex.ru/maps-reviews-widget/' + org + '?comments" title="Отзывы о Displex на Яндекс Картах" loading="lazy" style="width:100%;height:100%;border:0;border-radius:inherit"></iframe>';
+    };
+    var current = function () { var b = tabs && tabs.querySelector('[aria-pressed="true"]'); return b ? b.getAttribute("data-org") : ORG_DEFAULT; };
+    var load = function () { if (seen) return; seen = true; show(current()); };
+    if (tabs) tabs.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-org]"); if (!b || b.getAttribute("aria-pressed") === "true") return;
+      tabs.querySelectorAll("[data-org]").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      seen = true; show(b.getAttribute("data-org"));
+    });
     if ("IntersectionObserver" in window) { var io = new IntersectionObserver(function (en) { if (en[0].isIntersecting) { load(); io.disconnect(); } }, { rootMargin: "400px" }); io.observe(rv); }
     else load();
   }
