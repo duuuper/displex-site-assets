@@ -717,18 +717,20 @@ html.dx-theme-anim .dx-root, html.dx-theme-anim .dx-root * {
   .dx-table--stack { min-width: 0; }
   .dx-table--stack thead { display: none; }
   .dx-table--stack, .dx-table--stack tbody, .dx-table--stack tr, .dx-table--stack td { display: block; width: 100%; }
-  .dx-table--stack tr { display: grid; grid-template-columns: max-content max-content 1fr auto; column-gap: 6px; row-gap: 2px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--dx-line); }
+  .dx-table--stack tr { position: relative; padding: 14px 128px 14px 16px; border-bottom: 1px solid var(--dx-line); }
   .dx-table--stack tr:last-child { border-bottom: 0; }
-  .dx-table--stack td { padding: 0; border: 0; grid-row: 2; font-size: 13px; color: var(--dx-muted); }
-  .dx-table--stack td:first-child { grid-row: 1; grid-column: 1 / 4; font-size: 15px; color: var(--dx-ink); }
-  .dx-table--stack td:last-child { grid-row: 1 / span 2; grid-column: 4; text-align: right; padding-left: 12px; }
+  .dx-table--stack td { display: inline; padding: 0; border: 0; font-size: 13px; color: var(--dx-muted); }
+  .dx-table--stack td:first-child { display: block; margin-bottom: 2px; font-size: 15px; color: var(--dx-ink); }
+  .dx-table--stack td:last-child { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: auto; text-align: right; }
   .dx-table--stack td.dx-dash { display: none; }
-  .dx-table--stack td[data-l]::before { content: attr(data-l) " "; }
+  .dx-table--stack td[data-l]::before { content: "\00a0" attr(data-l) " "; }
 }
 
 /* Пальцем удобно попадать: ссылки в подвале, шапке, хлебных крошках — не меньше 44 px по высоте */
 @media (pointer: coarse) {
-  .dx-footer li a, .dx-topbar a, .dx-crumbs a, .dx-branch-card .dx-link, .dx-footer-legal a { display: inline-flex; align-items: center; min-height: 44px; }
+  .dx-footer li a, .dx-topbar a, .dx-crumbs a, .dx-branch-card .dx-link, .dx-footer-legal a,
+  .dx-head-split > .dx-link, .dx-calc .dx-tiny .dx-link, .dx-rl-wrap .dx-link { display: inline-flex; align-items: center; min-height: 44px; }
+  .dx-theme button { width: 40px; height: 40px; }
   .dx-footer ul { gap: 0; }
 }
 
