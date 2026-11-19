@@ -229,7 +229,6 @@ def page(key, p):
 </div>
 <script type="application/ld+json">{faq_ld}</script>
 <script type="application/ld+json">{bc_ld}</script>
-<script src="{CDN}/js/dx-catalog.min.js" defer></script>
 """
 
 
@@ -271,6 +270,32 @@ def home_page():
 <section class="dx-container dx-hero">
   <h1 class="dx-h1" style="max-width:980px">Ремонт и техника Apple. Цена — до начала работ.</h1>
   <p class="dx-lead">Два филиала в Екатеринбурге, бесплатная диагностика, письменная гарантия до 1 года.</p>
+  <div class="dx-mw" data-mw>
+    <div class="dx-mw-seg" role="tablist" aria-label="Что нужно">
+      <button type="button" role="tab" aria-selected="true" data-mw-tab="r">Ремонт</button><button type="button" role="tab" aria-selected="false" data-mw-tab="b">Купить</button><button type="button" role="tab" aria-selected="false" data-mw-tab="t">Trade-In</button>
+    </div>
+    <div class="dx-mw-pane" data-mw-pane="r" role="tabpanel">
+      <div class="dx-mw-models" role="group" aria-label="Модель iPhone" data-mw-rm></div>
+      <div class="dx-mw-tiles" role="group" aria-label="Услуга" data-mw-rs><div class="dx-skel"></div><div class="dx-skel"></div><div class="dx-skel"></div><div class="dx-skel"></div></div>
+      <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="button" data-mw-go="r">Записаться на ремонт</button>
+      <p class="dx-tiny dx-text-muted dx-mw-note">Все услуги и запчасти — <a class="dx-link" href="/calculator" data-mw-all>цены для вашей модели</a></p>
+    </div>
+    <div class="dx-mw-pane" data-mw-pane="b" role="tabpanel" hidden>
+      <div class="dx-mw-models" role="group" aria-label="Что купить" data-mw-bm></div>
+      <div class="dx-mw-tiles dx-mw-tiles--buy" role="group" aria-label="Новый или б/у" data-mw-bb></div>
+      <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="button" data-mw-go="b">Забронировать на 24 часа</button>
+      <p class="dx-tiny dx-text-muted dx-mw-note">Цвет и память уточним при брони · <a class="dx-link" href="/catalog" data-mw-cat>весь каталог</a></p>
+    </div>
+    <div class="dx-mw-pane" data-mw-pane="t" role="tabpanel" hidden>
+      <div class="dx-mw-ti">
+        <p class="dx-mw-ti-h">Сдайте старый — доплатите разницу</p>
+        <p class="dx-small dx-text-muted">Оценим по состоянию и зачтём сумму в покупку нового или б/у.</p>
+        <div class="dx-field"><label class="dx-label" for="dx-mw-ti-model">Ваша модель</label><input class="dx-input" id="dx-mw-ti-model" name="dx-ti-model" type="text" placeholder="iPhone 13 Pro" autocomplete="off"></div>
+        <div class="dx-opts" role="group" aria-label="Память" data-mw-mem><button class="dx-opt" type="button" aria-pressed="false">64 ГБ</button><button class="dx-opt" type="button" aria-pressed="true">128 ГБ</button><button class="dx-opt" type="button" aria-pressed="false">256 ГБ</button><button class="dx-opt" type="button" aria-pressed="false">512 ГБ</button><button class="dx-opt" type="button" aria-pressed="false">1 ТБ</button></div>
+        <button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="button" data-mw-go="t">Оценить мой телефон</button>
+      </div>
+    </div>
+  </div>
   <div class="dx-hero-grid">
     <form class="dx-calc" onsubmit="return false" aria-labelledby="dx-calc-h">
       <h2 class="dx-h3" id="dx-calc-h">Узнайте цену ремонта</h2>
@@ -369,7 +394,6 @@ def home_page():
 
 </div>
 {ld_html}
-<script src="{CDN}/js/dx-home.min.js" defer></script>
 """
 
 import json as _json
@@ -455,7 +479,6 @@ def series_page(sr):
 {REPAIR_MODAL}
 </div>
 {ld_html}
-<script src="{CDN}/js/dx-prices.min.js" defer></script>
 """
     return page, title, desc
 
@@ -525,7 +548,6 @@ def prices_page():
 {REPAIR_MODAL}</div>
 <script type="application/ld+json">{ld}</script>
 <script type="application/ld+json">{bc}</script>
-<script src="{CDN}/js/dx-prices.min.js" defer></script>
 """
 
 def privacy_page():

@@ -4,6 +4,7 @@
 (function () {
   "use strict";
   var root = document.documentElement;
+  var CORE_SRC = (document.currentScript && document.currentScript.src) || "";   // адрес ядра — из него берём версию для скриптов страниц
   var KEY_THEME = "dx-theme", KEY_COOKIE = "dx-cookie-ok";
 
   function store(k, v) {
@@ -492,6 +493,79 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { initPickers(); });
   else initPickers();
 
+  /* ---------- Скрипты страниц: версия задаётся только в шапке ---------- */
+  // Блок страницы содержит только метку (data-dx-home / data-dx-catalog / data-dx-prices),
+  // скрипт подгружаем из той же версии, что и ядро → для обновления меняется один блок шапки.
+  var PAGE_JS = { "[data-dx-home]": "dx-home", "[data-dx-catalog]": "dx-catalog", "[data-dx-prices]": "dx-prices" };
+  function loadPageScripts() {
+    if (!/\/js\/dx-core(\.min)?\.js/.test(CORE_SRC)) return;
+    Object.keys(PAGE_JS).forEach(function (sel) {
+      var el = document.querySelector(sel);
+      if (!el || el.hasAttribute("data-dx-ready")) return;                  // уже запущен (старый блок со своим <script>)
+      var s = document.createElement("script");
+      s.src = CORE_SRC.replace(/dx-core(\.min)?\.js/, PAGE_JS[sel] + "$1.js");
+      document.head.appendChild(s);
+    });
+  }
+
+  /* ---------- Быстрая заявка: открыть общее окно с подставленным текстом ---------- */
+  function lead(kind, text) {
+    var m = document.getElementById("dx-lead"); if (!m) { location.href = "/#booking"; return; }
+    var f = m.querySelector("form[data-dx-lead]");
+    if (f) {
+      var r = f.querySelector('input[name="dx-g-kind"][value="' + (kind || "Ремонт") + '"]'); if (r) r.checked = true;
+      syncKind(f);
+      if (text != null && f.elements["dx-g-device"]) f.elements["dx-g-device"].value = text;
+    }
+    openModal("dx-lead");
+    var ph = m.querySelector('input[type="tel"]');                      // сразу к телефону — модель и услуга уже заполнены
+    if (ph && text) setTimeout(function () { ph.focus(); }, 60);
+  }
+
+  /* ---------- Таблетка «Позвонить / Записаться» (телефон ≤640px) ---------- */
+  var PHONES = [["Репина, 94", "ТРЦ «Радуга Парк» · 10:00–22:00", "+79220252121", "+7 922 025-21-21"],
+                ["Красный пер., 12", "м. Динамо · 11:00–20:00", "+79809303620", "+7 980 930-36-20"]];
+  var ICON_PH = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>';
+  function initPill() {
+    if (document.querySelector(".dx-pill") || !document.querySelector(".dx-root")) return;
+    var call = document.createElement("div");
+    call.className = "dx-modal"; call.id = "dx-call"; call.setAttribute("role", "dialog"); call.setAttribute("aria-modal", "true");
+    call.setAttribute("aria-labelledby", "dx-call-h"); call.setAttribute("aria-hidden", "true"); call.setAttribute("data-open", "false");
+    call.innerHTML = '<div class="dx-modal-box"><button class="dx-modal-close" type="button" data-dx-close aria-label="Закрыть"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>' +
+      '<h2 class="dx-h3" id="dx-call-h">Позвонить в филиал</h2>' +
+      PHONES.map(function (p) { return '<a class="dx-call-row" href="tel:' + p[2] + '"><span><b>' + p[0] + '</b><small>' + p[1] + '</small></span><span class="dx-num">' + p[3] + "</span></a>"; }).join("") +
+      '<p class="dx-tiny dx-text-muted">Или напишите в Telegram <a class="dx-link" href="https://t.me/displexpoint" target="_blank" rel="noopener">@displexpoint</a></p></div>';
+    var pill = document.createElement("div");
+    pill.className = "dx-pill"; pill.setAttribute("role", "group"); pill.setAttribute("aria-label", "Связаться");
+    pill.innerHTML = '<button type="button" data-dx-open="dx-call">' + ICON_PH + "Позвонить</button>" +
+      '<button type="button" class="dx-pill-main" data-dx-pill-lead>Записаться</button>';
+    var roots = document.querySelectorAll(".dx-root"), host = roots[roots.length - 1] || document.body;
+    host.appendChild(call); host.appendChild(pill);
+    var spacer = document.createElement("div"); spacer.className = "dx-pill-space"; spacer.setAttribute("aria-hidden", "true"); host.appendChild(spacer);
+    var y = window.pageYOffset, ticking = false;
+    function place() {                                        // не перекрываем cookie-баннер
+      var c = document.querySelector(".dx-cookie:not([hidden]) .dx-cookie-box");
+      pill.style.bottom = c ? (c.getBoundingClientRect().height + 24) + "px" : "";
+    }
+    window.addEventListener("scroll", function () {
+      if (ticking) return; ticking = true;
+      requestAnimationFrame(function () {
+        var n = window.pageYOffset, d = n - y;
+        if (Math.abs(d) > 6) { pill.classList.toggle("is-hidden", d > 0 && n > 120); y = n; }
+        ticking = false;
+      });
+    }, { passive: true });
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-dx-pill-lead]")) lead(null, null);
+      if (e.target.closest && e.target.closest("[data-dx-cookie-ok]")) setTimeout(place, 0);
+    });
+    place(); setTimeout(place, 1200);
+    var mwEl = document.querySelector("[data-mw]");             // на главной у виджета своя кнопка — таблетку прячем, пока он на экране
+    if (mwEl && "IntersectionObserver" in window) new IntersectionObserver(function (en) { pill.classList.toggle("is-away", en[0].isIntersecting); }).observe(mwEl);
+  }
+  function initPage() { loadPageScripts(); initPill(); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initPage); else initPage();
+
   window.DX = { applyTheme: applyTheme, openModal: openModal, closeModal: closeModal, formatPhone: formatPhone,
-                sendLead: sendLead, validPhone: validPhone, store: store, syncKind: syncKind, initPickers: initPickers, colorRu: colorRu, swap: swap };
+                sendLead: sendLead, validPhone: validPhone, store: store, syncKind: syncKind, initPickers: initPickers, colorRu: colorRu, swap: swap, lead: lead };
 })();

@@ -757,3 +757,86 @@ html body .dx-root .dx-footer a.dx-offer--dark.dx-rl, html body .dx-root .dx-foo
 html body #cr-page .dx-root .dx-footer a.dx-offer--dark.dx-rl, html body #cr-page .dx-root .dx-footer a.dx-offer--dark.dx-rl:hover,
 html body .cr-page .dx-root .dx-footer a.dx-offer--dark.dx-rl, html body .cr-page .dx-root .dx-footer a.dx-offer--dark.dx-rl:hover { color: var(--dx-band-ink) !important; }
 @media (max-width: 520px) { .dx-rl-grid { grid-template-columns: 1fr 1fr; gap: 8px; } .dx-footer .dx-rl { padding: 12px 14px; } .dx-rl-t { font-size: 14px; } .dx-rl-arrow { font-size: 16px; } }
+
+/* ==========================================================================
+   Телефон (≤640px): виджет главной, таблетка, каталог 2 в ряд + окно подробностей.
+   На компьютере ничего из этого не видно.
+   ========================================================================== */
+.dx-mw, .dx-pill, .dx-pill-space, .dx-pcard-from, .dx-pcard-short, .dx-pd-only { display: none; }
+.dx-pd .dx-pd-only { display: inline-flex; }
+.dx-call-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: var(--dx-r); background: var(--dx-surface); color: var(--dx-ink); text-decoration: none; }
+.dx-call-row span:first-child { display: flex; flex-direction: column; gap: 2px; }
+.dx-call-row small { font-size: 12px; color: var(--dx-muted); }
+.dx-call-row .dx-num { font-weight: 600; color: var(--dx-accent-text); white-space: nowrap; }
+
+@media (max-width: 640px) {
+  /* --- главная: виджет вместо калькулятора и офферов --- */
+  [data-dx-home] .dx-hero-grid { display: none; }
+  .dx-mw { display: flex; flex-direction: column; gap: 14px; margin-top: 20px; }
+  .dx-mw-seg { display: flex; padding: 3px; border-radius: 12px; background: var(--dx-surface); }
+  .dx-mw-seg button { flex: 1; min-height: 40px; border: 0; border-radius: 10px; background: none; color: var(--dx-muted); font: 600 14px/1 var(--dx-font-text); cursor: pointer; transition: background-color .2s, color .2s, box-shadow .2s; }
+  .dx-mw-seg button[aria-selected="true"] { background: var(--dx-elevated); color: var(--dx-ink); box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 4px 10px rgba(0,0,0,.06); }
+  .dx-mw-pane { display: flex; flex-direction: column; gap: 12px; }
+  .dx-mw-pane[hidden] { display: none; }
+  .dx-mw-models { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--dx-gutter)); padding: 2px var(--dx-gutter); scroll-behavior: smooth; }
+  .dx-mw-models::-webkit-scrollbar { display: none; }
+  .dx-mw-models .dx-chip { flex: none; white-space: nowrap; text-decoration: none; }
+  .dx-mw-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .dx-mw-tiles .dx-skel { min-height: 84px; }
+  .dx-mw-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-height: 84px; padding: 12px; border-radius: var(--dx-r); border: 1.5px solid var(--dx-line); background: var(--dx-elevated); color: var(--dx-ink); text-align: left; font: inherit; cursor: pointer; transition: border-color .15s, background-color .15s; }
+  .dx-mw-tile b { font-weight: 600; font-size: 15px; line-height: 1.2; }
+  .dx-mw-tile small { font-size: 12px; color: var(--dx-muted); }
+  .dx-mw-tile span { margin-top: auto; font-weight: 700; font-family: var(--dx-font-display); font-size: 15px; font-variant-numeric: tabular-nums; }
+  .dx-mw-tile[aria-pressed="true"] { border-color: var(--dx-accent); background: var(--dx-accent-soft); }
+  .dx-mw-tile:disabled { opacity: .55; cursor: default; }
+  .dx-mw-tile span.is-muted, .dx-mw-tile b.is-muted { font: 500 13px/1.3 var(--dx-font-text); color: var(--dx-muted); }
+  .dx-mw-tiles--buy .dx-mw-tile small { order: -1; }
+  .dx-mw-note { text-align: center; }
+  .dx-mw-ti { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: var(--dx-r-lg); border: 1px solid var(--dx-line); background: var(--dx-elevated); }
+  .dx-mw-ti-h { font-weight: 600; font-size: 16px; }
+  .dx-mw-ti .dx-opts { flex-wrap: wrap; }
+
+  /* «В наличии сегодня» — 2 в ряд, только главное */
+  [data-home-shop].dx-cat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  [data-home-shop] .dx-pcard { padding: 10px; gap: 6px; }
+  [data-home-shop] .dx-pcard .dx-chips, [data-home-shop] .dx-pcard .dx-card-meta, [data-home-shop] .dx-pcard .dx-btn { display: none; }
+  [data-home-shop] .dx-card-title { font-size: 14px; line-height: 1.25; }
+  [data-home-shop] .dx-price--lg { font-size: 15px; }
+  [data-home-shop] .dx-skel { min-height: 220px; }
+
+  /* --- таблетка «Позвонить / Записаться» --- */
+  .dx-pill { display: flex; gap: 4px; position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 90; padding: 5px; border-radius: 999px; background: var(--dx-band); box-shadow: 0 10px 30px rgba(0,0,0,.25); transform: translateX(-50%); transition: transform .3s var(--dx-ease), opacity .3s; }
+  .dx-pill.is-hidden, .dx-pill.is-away { transform: translate(-50%, 140%); opacity: 0; pointer-events: none; }
+  .dx-pill button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 18px; border: 0; border-radius: 999px; background: none; color: var(--dx-band-ink); font: 600 15px/1 var(--dx-font-text); cursor: pointer; white-space: nowrap; }
+  .dx-pill svg { flex: none; max-width: none; }
+  .dx-pill .dx-pill-main { background: var(--dx-accent); color: var(--dx-accent-ink); }
+  .dx-pill-space { display: block; height: 84px; }
+
+  /* --- каталог и б/у: 2 в ряд, компактные карточки --- */
+  [data-dx-grid].dx-cat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  [data-dx-grid] .dx-skel { min-height: 240px; }
+  [data-dx-grid] .dx-pcard { padding: 10px; gap: 6px; cursor: pointer; }
+  [data-dx-grid] .dx-pcard .dx-dim, [data-dx-grid] .dx-pcard .dx-specs, [data-dx-grid] .dx-pcard > p.dx-small,
+  [data-dx-grid] .dx-pcard .dx-card-actions, [data-dx-grid] .dx-pcard[data-key] .dx-card-row, [data-dx-grid] .dx-pcard .dx-gal-nav,
+  [data-dx-grid] .dx-pcard .dx-badge--stock, [data-dx-grid] .dx-pcard .dx-badge--new { display: none; }
+  [data-dx-grid] .dx-pcard .dx-card-meta { font-size: 12px; line-height: 1.35; }
+  [data-dx-grid] .dx-card-media--photo { aspect-ratio: 3 / 4; }
+  [data-dx-grid] .dx-pcard-short { display: block; }
+  [data-dx-grid] .dx-pcard-from { display: block; }
+  [data-dx-grid] .dx-card-title { font-size: 14px; line-height: 1.25; }
+  [data-dx-grid] .dx-pcard .dx-chips:empty { display: none; }
+  [data-dx-grid] .dx-badge { font-size: 11px; padding: 3px 7px; }
+  [data-dx-grid] .dx-card-foot { padding-top: 2px; gap: 0; }
+  [data-dx-grid] .dx-price--md, [data-dx-grid] .dx-price--lg { font-size: 15px; }
+
+  /* окно подробностей (снизу) */
+  .dx-pd .dx-modal-box { padding: 10px 16px calc(20px + env(safe-area-inset-bottom, 0px)); max-height: 92%; }
+  .dx-pd-grab { display: block; width: 36px; height: 4px; border-radius: 2px; background: var(--dx-line-strong); margin: 0 auto 4px; flex: none; }
+  .dx-pd .dx-modal-close { top: 10px; right: 10px; z-index: 2; }
+  .dx-pd .dx-pcard { border: 0; padding: 0; background: none; gap: 12px; }
+  .dx-pd .dx-card-media { aspect-ratio: 1 / 1; }
+  .dx-pd .dx-card-title { font-size: 20px; padding-right: 44px; }
+  .dx-pd .dx-card-actions { display: flex; flex-direction: column; gap: 8px; }
+  .dx-pd .dx-card-actions .dx-btn { width: 100%; min-height: 48px; font-size: 16px; }
+}
+@media (max-width: 640px) and (prefers-reduced-motion: reduce) { .dx-pill { transition: none; } }

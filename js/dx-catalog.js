@@ -5,7 +5,8 @@
 (function () {
   "use strict";
   var root = document.querySelector("[data-dx-catalog]");
-  if (!root) return;
+  if (!root || root.hasAttribute("data-dx-ready")) return;            // скрипт мог подключиться дважды (старый блок + ядро)
+  root.setAttribute("data-dx-ready", "");
   var PAGE = root.getAttribute("data-dx-catalog") || "all";
   var API = "https://displex.su/site/";
   var CACHE_KEY = "dx-cat-v1", CACHE_FRESH = 60 * 1000;
@@ -189,6 +190,7 @@
       (single ? '<p class="dx-card-meta">' + esc(single) + "</p>" : "") + dims +
       '<div class="dx-card-foot"><div class="dx-card-row"><span class="dx-price dx-price--lg">' + rub(v.price) + "</span>" +
       (v.price > g.min ? '<span class="dx-tiny dx-text-muted">от ' + rub(g.min) + "</span>" : "") + "</div>" +
+      '<span class="dx-price dx-price--md dx-pcard-from">' + (g.items.length > 1 ? "от " : "") + rub(g.min) + "</span>" +
       '<div class="dx-card-actions"><button class="dx-btn dx-btn--primary dx-btn--sm" type="button" data-book="new" data-g="' + esc(g.key) + '">Забронировать</button></div></div>' +
       "</article>";
   }
@@ -207,10 +209,11 @@
       : silhouette(u.cat);
     var br = u.branch == null ? "Оба филиала" : BRANCHES[u.branch] || "";
     var head = u.model + (u.memory ? " · " + u.memory : "");
-    return '<article class="dx-card dx-pcard">' +
+    return '<article class="dx-card dx-pcard" data-id="' + esc(u.id) + '">' +
       '<div class="dx-card-media dx-card-media--photo">' + media + "</div>" +
       '<div class="dx-chips" style="gap:6px"><span class="dx-badge dx-badge--used">Б/у</span>' + (br ? '<span class="dx-badge">' + esc(br) + "</span>" : "") + "</div>" +
       '<h3 class="dx-card-title">' + esc(head) + "</h3>" +
+      '<p class="dx-card-meta dx-pcard-short">' + esc([u.battery ? "АКБ " + u.battery : "", u.condition].filter(Boolean).join(" · ")) + "</p>" +
       '<dl class="dx-specs">' +
       (u.color ? "<dt>Цвет</dt><dd>" + esc(u.color) + "</dd>" : "") +
       (u.sim ? "<dt>SIM</dt><dd>" + esc(u.sim) + "</dd>" : "") +
@@ -220,7 +223,8 @@
       (u.warranty ? "<dt>Гарантия</dt><dd>" + esc(u.warranty) + "</dd>" : "") +
       "</dl>" + (u.note ? '<p class="dx-small dx-text-muted">' + esc(u.note) + "</p>" : "") +
       '<div class="dx-card-foot"><div class="dx-card-row"><span class="dx-price dx-price--lg">' + rub(u.price) + "</span></div>" +
-      '<div class="dx-card-actions"><button class="dx-btn dx-btn--primary dx-btn--sm" type="button" data-book="used" data-id="' + esc(u.id) + '">Забронировать</button></div></div>' +
+      '<div class="dx-card-actions"><button class="dx-btn dx-btn--primary dx-btn--sm" type="button" data-book="used" data-id="' + esc(u.id) + '">Забронировать</button>' +
+      '<button class="dx-btn dx-btn--secondary dx-btn--sm dx-pd-only" type="button" data-book="used" data-ti="1" data-id="' + esc(u.id) + '">Обменять свой по Trade-In</button></div></div>' +
       "</article>";
   }
 
@@ -332,11 +336,34 @@
     });
   }
 
+  /* ---------- телефон: компактная сетка 2 в ряд, подробности — в окне снизу ---------- */
+  var MQ = window.matchMedia ? window.matchMedia("(max-width: 640px)") : { matches: false };
+  var pd = null;
+  function openSheet(card) {
+    if (!pd) {
+      pd = document.createElement("div");
+      pd.className = "dx-modal dx-pd"; pd.id = "dx-pd"; pd.setAttribute("role", "dialog"); pd.setAttribute("aria-modal", "true");
+      pd.setAttribute("aria-label", "Подробнее о товаре"); pd.setAttribute("aria-hidden", "true"); pd.setAttribute("data-open", "false");
+      pd.innerHTML = '<div class="dx-modal-box"><span class="dx-pd-grab" aria-hidden="true"></span><button class="dx-modal-close" type="button" data-dx-close aria-label="Закрыть"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button><div data-dx-sheetbody></div></div>';
+      root.appendChild(pd);
+    }
+    var key = card.getAttribute("data-key"), id = card.getAttribute("data-id"), html = "";
+    if (key) { var g = groups.filter(function (x) { return x.key === key; })[0]; if (g) html = cardNew(g); }
+    else if (id) { var u = usedList.filter(function (x) { return x.id === id; })[0]; if (u) html = cardUsed(u); }
+    if (!html) return;
+    pd.querySelector("[data-dx-sheetbody]").innerHTML = html;
+    window.DX && window.DX.openModal("dx-pd");
+    pd.querySelector(".dx-modal-box").scrollTop = 0;
+  }
+
   /* ---------- бронь ---------- */
   var modal = document.getElementById("dx-book");
   var booking = null;
-  function openBooking(kind, ref) {
+  function openBooking(kind, ref, ti) {
     if (!modal) return;
+    if (pd && pd.getAttribute("data-open") === "true") window.DX.closeModal(pd);
+    var tiBox0 = modal.querySelector('[name="dx-book-ti"]'), tiF0 = modal.querySelector("[data-ti-fields]");
+    if (tiBox0 && tiF0 && (ti || tiBox0.checked)) { tiBox0.checked = !!ti; tiF0.hidden = !ti; }
     var title, meta, price, cat;
     if (kind === "new") {
       var g = groups.filter(function (x) { return x.key === ref; })[0]; if (!g) return;
@@ -386,9 +413,13 @@
   /* ---------- события ---------- */
   root.addEventListener("click", function (e) {
     var t = e.target, el;
-    if ((el = t.closest("[data-d]")) && el.closest("[data-dx-grid]")) {
+    if (MQ.matches && (el = t.closest(".dx-pcard")) && el.parentNode === grid) { e.preventDefault(); openSheet(el); return; }
+    if ((el = t.closest("[data-d]")) && el.closest("[data-dx-grid],[data-dx-sheetbody]")) {
       var g = groups.filter(function (x) { return x.key === el.getAttribute("data-g"); })[0];
-      if (g) { pickDim(g, el.getAttribute("data-d"), el.getAttribute("data-v")); var card = el.closest(".dx-pcard"); card.outerHTML = cardNew(g); }
+      if (g) {
+        pickDim(g, el.getAttribute("data-d"), el.getAttribute("data-v")); var card = el.closest(".dx-pcard"); card.outerHTML = cardNew(g);
+        var twin = grid.querySelector('.dx-pcard[data-key="' + g.key.replace(/"/g, '\\"') + '"]'); if (twin && twin !== card) twin.outerHTML = cardNew(g);
+      }
       return;
     }
     if ((el = t.closest("[data-gal]"))) {
@@ -396,7 +427,7 @@
       if (u) { var n = (u.photos || []).length; gal[id] = ((gal[id] || 0) + +el.getAttribute("data-step") + n) % n; el.closest(".dx-pcard").outerHTML = cardUsed(u); }
       return;
     }
-    if ((el = t.closest("[data-book]"))) { openBooking(el.getAttribute("data-book"), el.getAttribute("data-g") || el.getAttribute("data-id")); return; }
+    if ((el = t.closest("[data-book]"))) { openBooking(el.getAttribute("data-book"), el.getAttribute("data-g") || el.getAttribute("data-id"), el.hasAttribute("data-ti")); return; }
     if ((el = t.closest("[data-fam]"))) { state.f = el.getAttribute("data-fam"); syncUrl(); render(); return; }
     if ((el = t.closest("[data-cat]")) && el.tagName === "BUTTON") { state.cat = el.getAttribute("data-cat"); state.f = ""; syncUrl(); render(); return; }
     if (t.closest("[data-reset]")) { state.f = ""; state.q = ""; state.cat = ""; var si = $("[data-dx-search]"); if (si) si.value = ""; syncUrl(); render(); }

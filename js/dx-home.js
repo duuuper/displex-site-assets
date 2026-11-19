@@ -3,7 +3,8 @@
 (function () {
   "use strict";
   var root = document.querySelector("[data-dx-home]");
-  if (!root) return;
+  if (!root || root.hasAttribute("data-dx-ready")) return;            // скрипт мог подключиться дважды (старый блок + ядро)
+  root.setAttribute("data-dx-ready", "");
   var API = "https://displex.su/site/";
   var CACHE = "dx-home-v1";
 
@@ -66,6 +67,7 @@
     if (models.indexOf(calc.model) < 0) calc.model = models.indexOf("iPhone 13") >= 0 ? "iPhone 13" : models[0];
     mSel.value = calc.model;
     fillServices(); renderCalc(); renderFrom();
+    if (mw) { mwRepairModels(); mwServices(); }
   }
 
   /* ---------- Витрина: 2 новых + 2 б/у ---------- */
@@ -85,6 +87,9 @@
       '<span class="dx-btn dx-btn--secondary dx-btn--sm dx-btn--block">' + (used ? "Подробнее" : "Выбрать цвет и память") + "</span></div></a>";
   }
   function ingestShop(fresh, used) {
+    if (fresh && fresh.items) NEW = fresh.items;
+    if (used && used.items) USED = used.items;
+    if (mw) mwBuy();
     var grid = $("[data-home-shop]"); if (!grid) return;
     var items = (fresh && fresh.items) || [], picks = [];
     // новые: самый свежий iPhone (минимальная цена модели) + ещё одна категория
@@ -97,6 +102,117 @@
     [ip, other].forEach(function (x) { if (x) picks.push(card(x, false)); });
     ((used && used.items) || []).slice().sort(function (a, b) { return b.ts - a.ts; }).slice(0, 2).forEach(function (u) { picks.push(card(u, true)); });
     if (picks.length) grid.innerHTML = picks.join("");
+  }
+
+
+  /* ---------- Телефон: виджет «Ремонт · Купить · Trade-In» (виден ≤640px) ---------- */
+  var mw = $("[data-mw]"), MW = { tab: "r", rm: "", rs: "", bm: "", bb: "new" }, NEW = [], USED = [];
+  var SVC_ORDER = ["Замена дисплея", "Замена аккумулятора", "Замена заднего стекла", "Замена камеры", "Замена шлейфа зарядки", "Ремонт платы (пайка)"];
+  var BUY_CATS = [["mac", "MacBook"], ["ipad", "iPad"], ["watch", "Watch"], ["airpods", "AirPods"]];
+  function short(m) { return String(m).replace(/^iPhone\s+/, ""); }
+  var SVC_SHORT = { "Замена дисплея": "Дисплей", "Замена аккумулятора": "Аккумулятор", "Замена заднего стекла": "Заднее стекло", "Замена камеры": "Камера",
+                    "Замена шлейфа зарядки": "Разъём зарядки", "Ремонт платы (пайка)": "Ремонт платы", "Замена стекла камеры": "Стекло камеры" };
+  function svcShort(s) { return SVC_SHORT[s] || s; }
+  function chip(val, label, on) { return '<button class="dx-chip" type="button" data-v="' + esc(val) + '" aria-pressed="' + on + '">' + esc(label) + "</button>"; }
+  function centerChip(row) {                     // выбранная модель видна в ленте, страницу не прокручиваем
+    var b = row.querySelector('[aria-pressed="true"]'); if (!b) return;
+    row.scrollLeft = Math.max(0, b.offsetLeft - (row.clientWidth - b.offsetWidth) / 2);
+  }
+  function mwRepairModels() {
+    var row = $("[data-mw-rm]"); if (!row) return;
+    var list = models.filter(function (m) { return /^iPhone/.test(m); });
+    if (!list.length) return;
+    if (list.indexOf(MW.rm) < 0) MW.rm = list.indexOf("iPhone 13") >= 0 ? "iPhone 13" : list[0];
+    row.innerHTML = list.map(function (m) { return chip(m, short(m), m === MW.rm); }).join("") +
+      '<a class="dx-chip" href="/calculator">Watch и др.</a>';
+    centerChip(row);
+  }
+  function mwServices() {
+    var box = $("[data-mw-rs]"); if (!box || !MW.rm) return;
+    var by = {};
+    rowsFor(MW.rm).forEach(function (r) {
+      if (r.price == null || /^Доплата/.test(r.variant || "")) return;
+      if (!by[r.service] || r.price < by[r.service].price) by[r.service] = r;
+    });
+    var list = Object.keys(by).sort(function (a, b) {
+      var ia = SVC_ORDER.indexOf(a), ib = SVC_ORDER.indexOf(b);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    }).slice(0, 6);
+    if (list.indexOf(MW.rs) < 0) MW.rs = list[0] || "";
+    box.innerHTML = list.map(function (sv) {
+      var r = by[sv];
+      return '<button class="dx-mw-tile" type="button" data-v="' + esc(sv) + '" aria-pressed="' + (sv === MW.rs) + '"><b>' + esc(svcShort(sv)) + "</b>" +
+        (r.duration ? "<small>" + esc(r.duration) + "</small>" : "") + "<span>от " + rub(r.price) + "</span></button>";
+    }).join("") || '<p class="dx-small dx-text-muted">Цену для этой модели назовём после бесплатной диагностики.</p>';
+    var all = $("[data-mw-all]"); if (all) { all.textContent = "цены для " + MW.rm; all.href = "/calculator?model=" + encodeURIComponent(MW.rm); }
+    var go = $('[data-mw-go="r"]'); if (go) go.textContent = MW.rs ? "Записаться · " + svcShort(MW.rs) : "Записаться на ремонт";
+  }
+  function buyKeys() {                           // iPhone по моделям (новые сверху) + остальные категории целиком
+    var ip = {};
+    NEW.forEach(function (i) { if (i.cat === "iphone") ip[i.model] = 1; });
+    var keys = Object.keys(ip).sort(function (a, b) { return gen(b) - gen(a) || a.localeCompare(b); }).map(function (m) { return [m, short(m)]; });
+    BUY_CATS.forEach(function (c) { if (NEW.some(function (i) { return i.cat === c[0]; }) || USED.some(function (u) { return u.cat === c[0]; })) keys.push(["cat:" + c[0], c[1]]); });
+    return keys;
+  }
+  function buyMatch(key, it) { return key.indexOf("cat:") === 0 ? it.cat === key.slice(4) : it.model === key; }
+  function mwBuy() {
+    var row = $("[data-mw-bm]"), box = $("[data-mw-bb]"); if (!row || !box) return;
+    var keys = buyKeys(); if (!keys.length) return;
+    if (!keys.some(function (k) { return k[0] === MW.bm; })) MW.bm = keys[0][0];
+    row.innerHTML = keys.map(function (k) { return chip(k[0], k[1], k[0] === MW.bm); }).join("");
+    centerChip(row);
+    var n = NEW.filter(function (i) { return buyMatch(MW.bm, i); }), u = USED.filter(function (i) { return buyMatch(MW.bm, i); });
+    var label = (keys.filter(function (k) { return k[0] === MW.bm; })[0] || [])[1];
+    var title = MW.bm.indexOf("cat:") === 0 ? label : MW.bm;
+    var nMin = n.length ? Math.min.apply(null, n.map(function (i) { return i.price; })) : null;
+    var uMin = u.length ? Math.min.apply(null, u.map(function (i) { return i.price; })) : null;
+    if (MW.bb === "used" && !u.length) MW.bb = "new";
+    if (MW.bb === "new" && !n.length && u.length) MW.bb = "used";
+    box.innerHTML =
+      '<button class="dx-mw-tile" type="button" data-v="new" aria-pressed="' + (MW.bb === "new") + '"' + (n.length ? "" : " disabled") + "><small>Новый · в наличии</small><b>" + esc(title) + "</b>" +
+        (nMin != null ? "<span>от " + rub(nMin) + "</span>" : '<span class="is-muted">привезём под заказ</span>') + "</button>" +
+      '<button class="dx-mw-tile" type="button" data-v="used" aria-pressed="' + (MW.bb === "used") + '"' + (u.length ? "" : " disabled") + "><small>Б/у · с гарантией</small><b>" +
+        (u.length ? u.length + " " + plural(u.length, ["устройство", "устройства", "устройств"]) : "Сейчас нет") + "</b>" + (uMin != null ? "<span>от " + rub(uMin) + "</span>" : '<span class="is-muted">появляются каждую неделю</span>') + "</button>";
+    var cat = MW.bm.indexOf("cat:") === 0 ? MW.bm.slice(4) : "iphone";
+    var link = $("[data-mw-cat]");
+    if (link) {
+      if (MW.bb === "used") { link.textContent = "все б/у"; link.href = "/catalog/used?cat=" + cat + (MW.bm.indexOf("cat:") ? "&q=" + encodeURIComponent(MW.bm) : ""); }
+      else { link.textContent = "выбрать в каталоге"; link.href = (CAT_URL[cat] || "/catalog") + (MW.bm.indexOf("cat:") ? "?q=" + encodeURIComponent(MW.bm) : ""); }
+    }
+    MW.buy = { title: title, used: MW.bb === "used", price: MW.bb === "used" ? uMin : nMin };
+  }
+  function plural(n, f) { var a = n % 100, b = n % 10; return a > 10 && a < 20 ? f[2] : b === 1 ? f[0] : b > 1 && b < 5 ? f[1] : f[2]; }
+  if (mw) {
+    mw.addEventListener("click", function (e) {
+      var t = e.target, el;
+      if ((el = t.closest("[data-mw-tab]"))) {
+        MW.tab = el.getAttribute("data-mw-tab");
+        mw.querySelectorAll("[data-mw-tab]").forEach(function (b) { b.setAttribute("aria-selected", String(b === el)); });
+        mw.querySelectorAll("[data-mw-pane]").forEach(function (p) {
+          var on = p.getAttribute("data-mw-pane") === MW.tab; p.hidden = !on;
+          if (on && window.DX && window.DX.swap) window.DX.swap(p, "dx-fade");
+        });
+        if (MW.tab === "b") mwBuy(); else if (MW.tab === "r") centerChip($("[data-mw-rm]"));
+        return;
+      }
+      if ((el = t.closest("[data-mw-rm] [data-v]"))) { MW.rm = el.getAttribute("data-v"); mwRepairModels(); mwServices(); return; }
+      if ((el = t.closest("[data-mw-rs] [data-v]"))) { MW.rs = el.getAttribute("data-v"); mwServices(); return; }
+      if ((el = t.closest("[data-mw-bm] [data-v]"))) { MW.bm = el.getAttribute("data-v"); mwBuy(); return; }
+      if ((el = t.closest("[data-mw-bb] [data-v]"))) { MW.bb = el.getAttribute("data-v"); mwBuy(); return; }
+      if ((el = t.closest("[data-mw-mem] .dx-opt"))) { el.parentNode.querySelectorAll(".dx-opt").forEach(function (b) { b.setAttribute("aria-pressed", String(b === el)); }); return; }
+      if (!(el = t.closest("[data-mw-go]")) || !window.DX || !window.DX.lead) return;
+      var k = el.getAttribute("data-mw-go");
+      if (k === "r") {
+        var r = $('[data-mw-rs] [aria-pressed="true"] span');
+        window.DX.lead("Ремонт", MW.rm + (MW.rs ? " — " + MW.rs + (r ? " · " + r.textContent : "") : ""));
+      } else if (k === "b") {
+        var b = MW.buy || {};
+        window.DX.lead("Покупка", (b.used ? "Б/у " : "Новый ") + (b.title || "") + (b.price != null ? " · от " + rub(b.price) : "") + " — бронь на 24 часа");
+      } else {
+        var m = $("#dx-mw-ti-model").value.trim(), mem = $('[data-mw-mem] [aria-pressed="true"]');
+        window.DX.lead("Trade-In", "Оценка: " + (m || "модель уточню") + (mem ? ", " + mem.textContent : ""));
+      }
+    });
   }
 
   /* ---------- Загрузка с кэшем ---------- */

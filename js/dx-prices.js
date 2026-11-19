@@ -3,7 +3,8 @@
 (function () {
   "use strict";
   var root = document.querySelector("[data-dx-prices]");
-  if (!root) return;
+  if (!root || root.hasAttribute("data-dx-ready")) return;            // скрипт мог подключиться дважды (старый блок + ядро)
+  root.setAttribute("data-dx-ready", "");
   var API = "https://displex.su/site/repair.json", CACHE = "dx-prices-v1";
   function $(s, el) { return (el || root).querySelector(s); }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
