@@ -28,6 +28,7 @@ USED_DIR = Path("/opt/displex-usedbot")
 OUT = USED_DIR / "public" / "site"
 STATE = USED_DIR / "data" / "state.json"
 PUBLIC_URL = "https://displex.su"
+CHECK = os.environ.get("DX_EXPORT_CHECK") == "1"   # проверка новой версии автообновлением: собрать всё, ничего не записывать
 
 REPAIR_SHEET_ID = "1KmS3Z3HDfsBMgsD8eL148tdp_gS2BE-d4OmBWZJdu00"
 REPAIR_SHEET = "Сайт_Ремонт"
@@ -51,7 +52,7 @@ _thumbs_used: set[str] = set()
 
 def thumb(url: str) -> str:
     """URL оригинала displex.su/media/... → URL миниатюры (или исходный URL, если сделать нельзя)."""
-    if Image is None or not url.startswith(PUBLIC_URL + "/"):
+    if Image is None or CHECK or not url.startswith(PUBLIC_URL + "/"):
         return url
     src = PUBLIC_DIR / urllib.parse.unquote(url[len(PUBLIC_URL) + 1:])
     try:
@@ -77,7 +78,7 @@ def thumb(url: str) -> str:
 
 
 def clean_thumbs() -> None:
-    if Image is None or not THUMBS.is_dir() or not _thumbs_used:
+    if Image is None or CHECK or not THUMBS.is_dir() or not _thumbs_used:
         return
     for f in THUMBS.glob("*.jpg"):
         if f.name not in _thumbs_used:
@@ -88,6 +89,8 @@ def clean_thumbs() -> None:
 
 
 def write_json(name: str, data: dict) -> None:
+    if CHECK:
+        return
     """Атомарная запись: временный файл с точкой (Caddy его не отдаёт) → rename."""
     OUT.mkdir(parents=True, exist_ok=True)
     tmp = OUT / f".{name}.tmp"

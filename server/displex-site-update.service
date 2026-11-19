@@ -1,0 +1,9 @@
+[Unit]
+Description=Displex: автообновление скрипта выгрузки сайта из GitHub
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/displex-site/displex-site-update.sh
+Nice=10
