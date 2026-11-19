@@ -235,16 +235,31 @@
     var n = m.match(/iPhone\s+(\d+)/i); if (!n) return "";
     return n[1] === "7" || n[1] === "8" ? "iPhone 7 / 8" : "iPhone " + n[1];
   }
+  var MP_RU = { "айфон": "iphone", "про": "pro", "макс": "max", "мини": "mini", "плюс": "plus", "эйр": "air", "эир": "air",
+                "часы": "watch", "вотч": "watch", "ультра": "ultra", "се": "se", "икс": "x", "иксэс": "xs", "иксэр": "xr" };
   function mpNorm(s) {
-    return String(s).toLowerCase().replace(/ё/g, "е").replace(/айфон/g, "iphone").replace(/про/g, "pro").replace(/макс/g, "max")
-      .replace(/мини/g, "mini").replace(/плюс/g, "plus").replace(/эйр/g, "air").replace(/часы|вотч/g, "watch").replace(/мм/g, "")
-      .replace(/(\d)([a-z])/g, "$1 $2").replace(/\s+/g, " ").trim();
+    return String(s).toLowerCase().replace(/ё/g, "е").replace(/мм/g, "").replace(/[()]/g, " ")
+      .replace(/(\d)([a-zа-я])/g, "$1 $2").replace(/\s+/g, " ").trim();
   }
-  function mpMatch(text, q) { var t = mpNorm(text); return mpNorm(q).split(" ").every(function (w) { return !w || t.indexOf(w) >= 0; }); }
+  function mpWords(w) {                       // русское слово или его начало → варианты на латинице («п» → pro, «м» → max/mini)
+    if (!/[а-я]/.test(w)) return [w];
+    var out = []; Object.keys(MP_RU).forEach(function (k) { if (k.indexOf(w) === 0 && out.indexOf(MP_RU[k]) < 0) out.push(MP_RU[k]); });
+    return out.length ? out : [w];
+  }
+  function mpMatch(text, q) {
+    var t = " " + mpNorm(text);
+    return mpNorm(q).split(" ").every(function (w) {
+      return !w || mpWords(w).some(function (v) { return t.indexOf(" " + v) >= 0; });
+    });
+  }
   function mpMark(text, q) {
     var out = mpEsc(text);
     mpNorm(q).split(" ").filter(Boolean).forEach(function (w) {
-      out = out.replace(new RegExp("(" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "i"), "<mark>$1</mark>");
+      mpWords(w).some(function (v) {
+        var re = new RegExp("(^|[\\s(])(" + v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "i");
+        if (!re.test(out)) return false;
+        out = out.replace(re, "$1<mark>$2</mark>"); return true;
+      });
     });
     return out;
   }

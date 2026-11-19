@@ -64,7 +64,7 @@
     REP = (d && d.items) || []; if (!REP.length) return;
     models = []; REP.forEach(function (r) { if (models.indexOf(r.model) < 0) models.push(r.model); });
     var phones = models.filter(function (m) { return fam(m) === "iphone"; }).reverse();
-    models = phones.concat(models.filter(function (m) { return fam(m) === "watch"; }));
+    models = phones.concat(models.filter(function (m) { return fam(m) === "watch"; }).reverse());   // новые серии сверху
     renderSelect(); renderTable(); if (SERIES.length) renderFrom();
   }
 
