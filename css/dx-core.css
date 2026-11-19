@@ -528,3 +528,67 @@ html body .dx-root .dx-footer a.dx-link:hover { color: var(--dx-accent-text) !im
 .dx-legal table { border-collapse: collapse; width: 100%; font-size: 14px; display: block; overflow-x: auto; }
 .dx-legal td, .dx-legal th { border: 1px solid var(--dx-line); padding: 8px 10px; vertical-align: top; text-align: left; }
 .dx-legal p { overflow-wrap: anywhere; }
+
+/* ---------- Выбор модели (список с группами и поиском) ---------- */
+.dx-mp { position: relative; width: 100%; min-width: 0; }
+.dx-p-controls .dx-mp { width: auto; min-width: 240px; }
+.dx-mp-native { position: absolute !important; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
+.dx-mp-trigger {
+  width: 100%; min-height: 48px; display: flex; align-items: center; gap: 10px; padding: 12px 14px; text-align: left; cursor: pointer;
+  border-radius: var(--dx-r-sm); border: 1px solid var(--dx-line-strong); background: var(--dx-elevated); color: var(--dx-ink);
+  font: 500 16px/1.3 var(--dx-font-text); transition: border-color .15s, box-shadow .25s;
+}
+.dx-mp-trigger:hover:not(:disabled) { border-color: var(--dx-ink); }
+.dx-mp-trigger:focus-visible, .dx-mp.is-open .dx-mp-trigger { outline: none; border-color: var(--dx-accent); box-shadow: 0 0 0 3px var(--dx-accent-soft); }
+.dx-mp-trigger:disabled { cursor: default; opacity: .6; }
+.dx-mp-val { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dx-mp-ico { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--dx-faint); stroke-width: 1.6; stroke-linecap: round; transition: stroke .15s; }
+.dx-mp-trigger .dx-mp-ico { stroke: var(--dx-muted); }
+.dx-mp-chev { width: 12px; height: 8px; flex: none; fill: none; stroke: var(--dx-faint); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s cubic-bezier(.2,.7,.2,1); }
+.dx-mp.is-open .dx-mp-chev { transform: rotate(180deg); }
+.dx-mp-pop {
+  position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 60; min-width: 240px; overflow: hidden;
+  background: var(--dx-elevated); border: 1px solid var(--dx-line); border-radius: var(--dx-r);
+  box-shadow: var(--dx-shadow), 0 24px 60px rgba(0,0,0,.18);
+  opacity: 0; visibility: hidden; transform: translateY(-6px) scale(.98); transform-origin: top center;
+  transition: opacity .18s, transform .22s cubic-bezier(.2,.7,.2,1), visibility 0s .22s;
+}
+.dx-mp.is-open .dx-mp-pop { opacity: 1; visibility: visible; transform: none; transition: opacity .18s, transform .22s cubic-bezier(.2,.7,.2,1), visibility 0s; }
+.dx-mp--input.dx-mp--empty .dx-mp-pop { display: none; }
+.dx-mp-handle { display: none; }
+.dx-mp-search { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--dx-line); }
+.dx-mp-search[hidden] { display: none; }
+.dx-mp-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--dx-ink); font: 400 16px/1.3 var(--dx-font-text); -webkit-appearance: none; appearance: none; }
+.dx-mp-search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.dx-mp-search input::placeholder { color: var(--dx-faint); }
+.dx-mp-list { max-height: 320px; overflow-y: auto; padding: 6px; overscroll-behavior: contain; }
+.dx-mp--input .dx-mp-list { max-height: 260px; }
+.dx-mp-group { position: sticky; top: -6px; z-index: 1; padding: 10px 10px 4px; background: var(--dx-elevated); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--dx-faint); }
+.dx-mp-opt { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 15px; color: var(--dx-ink); transition: background-color .12s; }
+.dx-mp-opt.is-act { background: var(--dx-surface); }
+.dx-mp-opt.is-act .dx-mp-ico, .dx-mp-opt[aria-selected="true"] .dx-mp-ico { stroke: var(--dx-accent); }
+.dx-mp-opt[aria-selected="true"] { font-weight: 600; }
+.dx-mp-opt mark { background: var(--dx-accent-soft); color: inherit; border-radius: 3px; }
+.dx-mp-tick { width: 16px; height: 16px; margin-left: auto; flex: none; fill: none; stroke: var(--dx-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(.6); transition: opacity .15s, transform .2s cubic-bezier(.2,.7,.2,1); }
+.dx-mp-opt[aria-selected="true"] .dx-mp-tick { opacity: 1; transform: none; }
+.dx-mp-empty { padding: 14px 12px; font-size: 14px; color: var(--dx-muted); }
+.dx-mp-empty a { color: var(--dx-accent-text); white-space: nowrap; }
+.dx-mp-scrim { display: none; }
+.dx-panel-dark .dx-mp-trigger { background: var(--dx-band-field); border-color: var(--dx-band-line); color: var(--dx-band-ink); }
+/* телефон: список выезжает шторкой снизу (кроме подсказок в поле ввода) */
+@media (max-width: 640px) {
+  .dx-mp:not(.dx-mp--input) .dx-mp-scrim { display: block; position: fixed; inset: 0; z-index: 1000; background: var(--dx-overlay); opacity: 0; visibility: hidden; transition: opacity .25s, visibility 0s .25s; }
+  .dx-mp.is-open:not(.dx-mp--input) .dx-mp-scrim { opacity: 1; visibility: visible; transition: opacity .25s; }
+  .dx-mp:not(.dx-mp--input) .dx-mp-pop {
+    position: fixed; top: auto; left: 0; right: 0; bottom: 0; z-index: 1001; min-width: 0;
+    border-radius: 20px 20px 0 0; border-width: 1px 0 0; padding-bottom: env(safe-area-inset-bottom);
+    transform: translateY(100%); transition: transform .32s cubic-bezier(.2,.7,.2,1), opacity .2s, visibility 0s .32s;
+  }
+  .dx-mp.is-open:not(.dx-mp--input) .dx-mp-pop { transform: none; transition: transform .32s cubic-bezier(.2,.7,.2,1), opacity .2s, visibility 0s; }
+  .dx-mp:not(.dx-mp--input) .dx-mp-handle { display: block; width: 36px; height: 4px; border-radius: 2px; background: var(--dx-line-strong); margin: 8px auto 2px; }
+  .dx-mp:not(.dx-mp--input) .dx-mp-list { max-height: 62vh; }
+  .dx-mp-opt { min-height: 44px; }
+  .dx-p-controls .dx-mp { width: 100%; }
+  html.dx-mp-lock, html.dx-mp-lock body { overflow: hidden; }
+}
+@media (prefers-reduced-motion: reduce) { .dx-mp-pop, .dx-mp-scrim, .dx-mp-chev, .dx-mp-tick { transition: none !important; } }

@@ -214,6 +214,187 @@
     if (t.matches && t.matches('input[type="radio"][name$="-kind"]')) syncKind(t.form || t.closest("form"));
   });
 
+  /* ---------- Выбор модели: список с группами по сериям и поиском ----------
+     Подключается сам к полям выбора модели. Родной <select> остаётся в разметке (скрыт): его заполняют
+     и читают другие скрипты, а сюда мы только пишем value и шлём change. Для поля Trade-In (<input>)
+     — подсказки по мере ввода, свободный текст тоже принимается. На телефоне список — шторка снизу. */
+  var MP_SELECT = "select[data-calc-model], select[data-p-model], select[data-dx-model]";
+  var MP_INPUT = 'input[name="dx-ti-model"], input[data-dx-model]';
+  var TI_MODELS = ["iPhone 18 Pro Max", "iPhone 18 Pro", "iPhone Air", "iPhone 17 Pro Max", "iPhone 17 Pro", "iPhone 17", "iPhone 17e",
+    "iPhone 16 Pro Max", "iPhone 16 Pro", "iPhone 16 Plus", "iPhone 16", "iPhone 16e", "iPhone 15 Pro Max", "iPhone 15 Pro", "iPhone 15 Plus", "iPhone 15",
+    "iPhone 14 Pro Max", "iPhone 14 Pro", "iPhone 14 Plus", "iPhone 14", "iPhone 13 Pro Max", "iPhone 13 Pro", "iPhone 13", "iPhone 13 mini",
+    "iPhone 12 Pro Max", "iPhone 12 Pro", "iPhone 12", "iPhone 12 mini", "iPhone 11 Pro Max", "iPhone 11 Pro", "iPhone 11",
+    "iPhone SE (2022)", "iPhone SE (2020)", "iPhone XS Max", "iPhone XS", "iPhone XR", "iPhone X"];
+  var mpUid = 0;
+  function mpEsc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function mpGroup(m) {
+    var w = m.match(/Watch\s+(S\d+|SE|Ultra\s*\d*)/i); if (w) return "Apple Watch " + w[1];
+    if (/iPhone\s+Air/i.test(m)) return "iPhone Air";
+    if (/iPhone\s+SE/i.test(m)) return "iPhone SE";
+    if (/iPhone\s+X/i.test(m)) return "iPhone X / XS / XR";
+    var n = m.match(/iPhone\s+(\d+)/i); if (!n) return "";
+    return n[1] === "7" || n[1] === "8" ? "iPhone 7 / 8" : "iPhone " + n[1];
+  }
+  function mpNorm(s) {
+    return String(s).toLowerCase().replace(/ё/g, "е").replace(/айфон/g, "iphone").replace(/про/g, "pro").replace(/макс/g, "max")
+      .replace(/мини/g, "mini").replace(/плюс/g, "plus").replace(/эйр/g, "air").replace(/часы|вотч/g, "watch").replace(/мм/g, "")
+      .replace(/(\d)([a-z])/g, "$1 $2").replace(/\s+/g, " ").trim();
+  }
+  function mpMatch(text, q) { var t = mpNorm(text); return mpNorm(q).split(" ").every(function (w) { return !w || t.indexOf(w) >= 0; }); }
+  function mpMark(text, q) {
+    var out = mpEsc(text);
+    mpNorm(q).split(" ").filter(Boolean).forEach(function (w) {
+      out = out.replace(new RegExp("(" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "i"), "<mark>$1</mark>");
+    });
+    return out;
+  }
+  function mpIcon(m) {
+    if (/Watch/i.test(m)) return '<svg class="dx-mp-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="12" height="14" rx="3.5"/><path d="M8.5 5l.8-3h5.4l.8 3M8.5 19l.8 3h5.4l.8-3"/></svg>';
+    var h = /Max|Plus/i.test(m) ? 20 : /mini|SE/i.test(m) ? 15 : 18, y = (24 - h) / 2;
+    return '<svg class="dx-mp-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="' + (12 - h / 4) + '" y="' + y + '" width="' + h / 2 + '" height="' + h + '" rx="2.6"/><path d="M10.6 ' + (y + 1.8) + 'h2.8"/></svg>';
+  }
+  var MP_CHEV = '<svg class="dx-mp-chev" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5 6 6.5l5-5"/></svg>';
+  var MP_TICK = '<svg class="dx-mp-tick" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+  var MP_LOUPE = '<svg class="dx-mp-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg>';
+  var mpSheet = window.matchMedia ? window.matchMedia("(max-width: 640px)") : { matches: false };
+  var mpOpen = null;
+
+  function ModelPicker(field) {
+    var isSel = field.tagName === "SELECT", id = "dx-mp-" + (++mpUid), self = this;
+    var wrap = document.createElement("div"); wrap.className = "dx-mp" + (isSel ? "" : " dx-mp--input");
+    field.parentNode.insertBefore(wrap, field);
+    var trig, search;
+    if (isSel) {
+      trig = document.createElement("button"); trig.type = "button"; trig.className = "dx-mp-trigger"; trig.id = id + "-t";
+      trig.setAttribute("aria-haspopup", "listbox"); trig.setAttribute("aria-expanded", "false");
+      wrap.appendChild(trig); wrap.appendChild(field);
+      field.classList.add("dx-mp-native"); field.tabIndex = -1; field.setAttribute("aria-hidden", "true");
+      var lab = field.id && document.querySelector('label[for="' + field.id + '"]');
+      if (lab) lab.htmlFor = trig.id;
+      var lt = (lab || field.closest("label") || {}).textContent;
+      if (lt) trig.setAttribute("aria-label", lt.trim());
+    } else {
+      wrap.appendChild(field); trig = field;
+      field.setAttribute("autocomplete", "off"); field.setAttribute("role", "combobox");
+      field.setAttribute("aria-autocomplete", "list"); field.setAttribute("aria-expanded", "false");
+    }
+    var scrim = document.createElement("div"); scrim.className = "dx-mp-scrim";
+    var pop = document.createElement("div"); pop.className = "dx-mp-pop";
+    pop.innerHTML = (isSel ? '<div class="dx-mp-handle"></div><div class="dx-mp-search">' + MP_LOUPE + '<input type="search" placeholder="Найти модель" aria-label="Найти модель" autocomplete="off" enterkeyhint="done"></div>' : "") +
+      '<div class="dx-mp-list" role="listbox" id="' + id + '-l"></div>';
+    wrap.appendChild(scrim); wrap.appendChild(pop);
+    var list = pop.querySelector(".dx-mp-list"); search = pop.querySelector("input");
+    trig.setAttribute("aria-controls", id + "-l");
+    var act = -1;
+
+    function items() {
+      if (!isSel) return TI_MODELS.map(function (m) { return { v: m, t: m }; });
+      return [].map.call(field.options, function (o) { return { v: o.value, t: o.textContent }; });
+    }
+    function value() { return isSel ? field.value : field.value.trim(); }
+    function label() {
+      if (!isSel) return;
+      var o = field.options[field.selectedIndex], t = o ? o.textContent : "";
+      trig.innerHTML = (t ? mpIcon(t) : "") + '<span class="dx-mp-val">' + mpEsc(t || "Выберите модель") + "</span>" + MP_CHEV;
+      trig.disabled = field.disabled || !field.options.length;
+    }
+    function opts() { return list.querySelectorAll(".dx-mp-opt"); }
+    function render() {
+      var q = isSel ? search.value.trim() : field.value.trim(), cur = value(), all = items();
+      if (isSel && search) pop.querySelector(".dx-mp-search").hidden = all.length < 9;
+      var shown = all.filter(function (it) { return mpMatch(it.t, q); });
+      if (!isSel && shown.length === 1 && mpNorm(shown[0].t) === mpNorm(q)) shown = [];   // уже введено точно
+      var html = "", g = null, n = 0;
+      shown.forEach(function (it) {
+        var gg = mpGroup(it.t);
+        if (gg && gg !== g) { html += '<div class="dx-mp-group" role="presentation">' + mpEsc(gg) + "</div>"; g = gg; }
+        html += '<div class="dx-mp-opt" role="option" id="' + id + "-o" + (n++) + '" data-v="' + mpEsc(it.v) + '" aria-selected="' + (it.v === cur) + '">' +
+          mpIcon(it.t) + "<span>" + mpMark(it.t, q) + "</span>" + MP_TICK + "</div>";
+      });
+      if (!shown.length) html = isSel ? '<div class="dx-mp-empty">Не нашли модель — позвоните, подскажем цену: <a href="tel:+79220252121">+7 922 025-21-21</a></div>' : "";
+      list.innerHTML = html;
+      if (!isSel) { var has = !!shown.length; wrap.classList.toggle("dx-mp--empty", !has); }
+      var sel = list.querySelector('[aria-selected="true"]');
+      setAct(q ? 0 : [].indexOf.call(opts(), sel), !q);
+    }
+    function setAct(i, center) {
+      var o = opts(); if (act >= 0 && o[act]) o[act].classList.remove("is-act");
+      act = i; trig.removeAttribute("aria-activedescendant");
+      if (i < 0 || !o[i]) return;
+      o[i].classList.add("is-act"); trig.setAttribute("aria-activedescendant", o[i].id);
+      if (center) list.scrollTop = o[i].offsetTop - list.clientHeight / 2 + o[i].offsetHeight / 2;
+      else if (o[i].scrollIntoView) o[i].scrollIntoView({ block: "nearest" });
+    }
+    function open() {
+      if (mpOpen && mpOpen !== self) mpOpen.close();
+      if (isSel && trig.disabled) return;
+      if (search) search.value = "";
+      render();
+      if (!isSel && !opts().length) return;
+      mpOpen = self; wrap.classList.add("is-open"); trig.setAttribute("aria-expanded", "true");
+      if (mpSheet.matches && isSel) document.documentElement.classList.add("dx-mp-lock");
+      if (isSel && search && !pop.querySelector(".dx-mp-search").hidden && !mpSheet.matches) setTimeout(function () { search.focus(); }, 30);
+    }
+    function close(refocus) {
+      if (!wrap.classList.contains("is-open")) return;
+      wrap.classList.remove("is-open"); trig.setAttribute("aria-expanded", "false"); trig.removeAttribute("aria-activedescendant");
+      document.documentElement.classList.remove("dx-mp-lock");
+      if (mpOpen === self) mpOpen = null;
+      if (refocus && isSel) trig.focus();
+    }
+    function pick(v) {
+      if (field.value !== v) {
+        field.value = v;
+        field.dispatchEvent(new Event(isSel ? "change" : "input", { bubbles: true }));
+        if (!isSel) field.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+      label(); close(true);
+    }
+    function key(e) {
+      var o = opts(), isOpen = wrap.classList.contains("is-open");
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!isOpen) { open(); return; }
+        setAct(e.key === "ArrowDown" ? Math.min(o.length - 1, act + 1) : Math.max(0, act - 1));
+      } else if (e.key === "Home" && isOpen && isSel) { e.preventDefault(); setAct(0); }
+      else if (e.key === "End" && isOpen && isSel) { e.preventDefault(); setAct(o.length - 1); }
+      else if (e.key === "Enter" && isOpen && o[act]) { e.preventDefault(); pick(o[act].getAttribute("data-v")); }
+      else if (e.key === "Escape" && isOpen) { e.preventDefault(); e.stopPropagation(); close(true); }
+      else if (e.key === "Tab" && isOpen) close();
+      else if (isSel && !isOpen && e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) {   // начали печатать на кнопке — открываем с поиском
+        open(); if (search && !pop.querySelector(".dx-mp-search").hidden) { search.value = e.key; render(); search.focus(); e.preventDefault(); }
+      }
+    }
+    if (isSel) {
+      trig.addEventListener("click", function () { wrap.classList.contains("is-open") ? close(true) : open(); });
+      trig.addEventListener("keydown", key);
+      search.addEventListener("keydown", key);
+      search.addEventListener("input", render);
+    } else {
+      field.addEventListener("focus", open);
+      field.addEventListener("click", open);
+      field.addEventListener("keydown", key);
+      field.addEventListener("input", function () { if (wrap.classList.contains("is-open")) render(); else open(); });
+    }
+    list.addEventListener("mousedown", function (e) { if (!isSel) e.preventDefault(); });   // не терять фокус поля
+    list.addEventListener("click", function (e) { var o = e.target.closest(".dx-mp-opt"); if (o) pick(o.getAttribute("data-v")); });
+    list.addEventListener("mousemove", function (e) { var o = e.target.closest(".dx-mp-opt"); if (o && !o.classList.contains("is-act")) setAct([].indexOf.call(opts(), o)); });
+    scrim.addEventListener("click", function () { close(); });
+    if (isSel) {
+      field.addEventListener("change", label);
+      new MutationObserver(label).observe(field, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["disabled"] });
+      label();
+    }
+    this.close = close; this.wrap = wrap; this.sync = label;
+    field._dxMp = this;
+  }
+  document.addEventListener("click", function (e) { if (mpOpen && !mpOpen.wrap.contains(e.target)) mpOpen.close(); });
+  function initPickers(scope) {
+    (scope || document).querySelectorAll(MP_SELECT + ", " + MP_INPUT).forEach(function (f) { if (!f._dxMp) new ModelPicker(f); });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { initPickers(); });
+  else initPickers();
+
   window.DX = { applyTheme: applyTheme, openModal: openModal, closeModal: closeModal, formatPhone: formatPhone,
-                sendLead: sendLead, validPhone: validPhone, store: store, syncKind: syncKind };
+                sendLead: sendLead, validPhone: validPhone, store: store, syncKind: syncKind, initPickers: initPickers };
 })();
