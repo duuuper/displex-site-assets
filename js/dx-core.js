@@ -262,7 +262,9 @@
   function ModelPicker(field) {
     var isSel = field.tagName === "SELECT", id = "dx-mp-" + (++mpUid), self = this;
     var wrap = document.createElement("div"); wrap.className = "dx-mp" + (isSel ? "" : " dx-mp--input");
-    field.parentNode.insertBefore(wrap, field);
+    var host = isSel && field.closest("label");          // внутри <label> клик по списку снова «нажимал» бы кнопку — выносим рядом
+    var hostText = host ? host.textContent.trim() : "";
+    if (host) host.parentNode.insertBefore(wrap, host.nextSibling); else field.parentNode.insertBefore(wrap, field);
     var trig, search;
     if (isSel) {
       trig = document.createElement("button"); trig.type = "button"; trig.className = "dx-mp-trigger"; trig.id = id + "-t";
@@ -271,8 +273,9 @@
       field.classList.add("dx-mp-native"); field.tabIndex = -1; field.setAttribute("aria-hidden", "true");
       var lab = field.id && document.querySelector('label[for="' + field.id + '"]');
       if (lab) lab.htmlFor = trig.id;
-      var lt = (lab || field.closest("label") || {}).textContent;
-      if (lt) trig.setAttribute("aria-label", lt.trim());
+      var lt = lab ? lab.textContent.trim() : hostText;
+      if (lt) trig.setAttribute("aria-label", lt);
+      if (host) host.hidden = true;
     } else {
       wrap.appendChild(field); trig = field;
       field.setAttribute("autocomplete", "off"); field.setAttribute("role", "combobox");
