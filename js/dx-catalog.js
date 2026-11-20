@@ -256,6 +256,44 @@
     famEl.innerHTML = chips.join("");
     famEl.hidden = !chips.length;
   }
+
+  /* ---------- телефон: модели и сортировка — в окне «Фильтры» ---------- */
+  var SORTS = [["new", "Сначала новые модели"], ["cheap", "Сначала дешевле"], ["dear", "Сначала дороже"]];
+  var fltBtn = null, flt = null;
+  function initFilters() {
+    var search = $(".dx-toolbar .dx-search"); if (!search) return;
+    fltBtn = document.createElement("button");
+    fltBtn.type = "button"; fltBtn.className = "dx-filter-btn"; fltBtn.setAttribute("aria-label", "Фильтры и сортировка");
+    fltBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span class="dx-filter-badge" hidden></span>';
+    search.parentNode.insertBefore(fltBtn, search.nextSibling);
+    flt = document.createElement("div");
+    flt.className = "dx-modal dx-flt"; flt.id = "dx-flt"; flt.setAttribute("role", "dialog"); flt.setAttribute("aria-modal", "true");
+    flt.setAttribute("aria-labelledby", "dx-flt-h"); flt.setAttribute("aria-hidden", "true"); flt.setAttribute("data-open", "false");
+    flt.innerHTML = '<div class="dx-modal-box"><span class="dx-pd-grab" aria-hidden="true"></span><button class="dx-modal-close" type="button" data-dx-close aria-label="Закрыть"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>' +
+      '<h2 class="dx-h3" id="dx-flt-h">Фильтры</h2>' +
+      '<div data-flt-fam-wrap><p class="dx-label">' + (PAGE === "used" ? "Категория и модель" : "Модель") + '</p><div class="dx-chips" data-flt-fam></div></div>' +
+      '<p class="dx-label">Сортировка</p><div class="dx-flt-sort" role="radiogroup" aria-label="Сортировка">' +
+      SORTS.map(function (x) { return '<button type="button" role="radio" data-sort-v="' + x[0] + '">' + x[1] + "</button>"; }).join("") + "</div>" +
+      '<button class="dx-btn dx-btn--primary dx-btn--lg dx-btn--block" type="button" data-flt-done>Показать</button></div>';
+    root.appendChild(flt);
+    fltBtn.addEventListener("click", function () { window.DX && window.DX.openModal("dx-flt"); });
+    flt.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-sort-v]");
+      if (b) { state.sort = b.getAttribute("data-sort-v"); if (sortEl) sortEl.value = state.sort; syncUrl(); render(); return; }
+      if (e.target.closest("[data-flt-done]")) window.DX && window.DX.closeModal(flt);
+    });
+  }
+  function syncFilters(n) {
+    if (!flt) return;
+    var box = flt.querySelector("[data-flt-fam]");
+    box.innerHTML = famEl && !famEl.hidden ? famEl.innerHTML : "";
+    flt.querySelector("[data-flt-fam-wrap]").hidden = !box.innerHTML;
+    flt.querySelectorAll("[data-sort-v]").forEach(function (b) { b.setAttribute("aria-checked", String(b.getAttribute("data-sort-v") === state.sort)); });
+    var active = (state.f || (PAGE === "used" && state.cat) ? 1 : 0) + (state.sort !== "new" ? 1 : 0);
+    var bd = fltBtn.querySelector(".dx-filter-badge"); bd.hidden = !active; bd.textContent = active;
+    var word2 = PAGE === "used" ? word(n, "устройство", "устройства", "устройств") : word(n, "модель", "модели", "моделей");
+    flt.querySelector("[data-flt-done]").textContent = n ? "Показать " + n + " " + word2 : "Ничего не найдено";
+  }
   function word(n, a, b, c) { n = Math.abs(n) % 100; var n1 = n % 10; return n > 10 && n < 20 ? c : n1 > 1 && n1 < 5 ? b : n1 === 1 ? a : c; }
   function render() {
     renderFamilies();
@@ -266,6 +304,7 @@
     grid.innerHTML = n ? html :
       '<div class="dx-empty" style="grid-column:1/-1"><p class="dx-h3">Ничего не нашли</p><p class="dx-text-muted">Измените запрос или напишите нам: привезём нужную модель под заказ.</p>' + notify +
       '<button class="dx-btn dx-btn--secondary dx-btn--sm" type="button" data-reset>Сбросить фильтры</button></div>';
+    syncFilters(n);
     if (countEl) {
       var upd = DATA.updated ? new Date(DATA.updated * 1000) : null;
       countEl.textContent = n + " " + (PAGE === "used" ? word(n, "устройство", "устройства", "устройств") : word(n, "модель", "модели", "моделей")) +
@@ -435,6 +474,7 @@
     if (t.closest("[data-reset]")) { state.f = ""; state.q = ""; state.cat = ""; var si = $("[data-dx-search]"); if (si) si.value = ""; syncUrl(); render(); }
   });
   var searchEl = $("[data-dx-search]"), sortEl = $("[data-dx-sort]"), tId;
+  initFilters();
   if (searchEl) { searchEl.value = state.q; searchEl.addEventListener("input", function () { clearTimeout(tId); tId = setTimeout(function () { state.q = searchEl.value.trim(); syncUrl(); render(); }, 180); }); }
   if (sortEl) { sortEl.value = state.sort; sortEl.addEventListener("change", function () { state.sort = sortEl.value; syncUrl(); render(); }); }
   root.addEventListener("error", function (e) {                 // фото не загрузилось → силуэт
